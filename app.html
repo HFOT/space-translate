@@ -505,8 +505,12 @@ async function onStart(){
       if(String(e&&(e.message||e)).includes('cancel')){ interim.textContent='モデルDLをキャンセルしました'; return; }
       alert('音声モデルの読み込みに失敗しました: '+(e.message||e)+'\n(ネット接続/ブラウザ対応をご確認ください)'); return;
     }
-    interim.textContent='✅ 準備完了 — もう一度 ▶START を押すと共有が始まります';
-    return; // 共有は次のクリックで (ユーザー操作を取り直して getDisplayMedia を呼ぶ)
+    // 準備完了 → CTA を「開始」に変える。次のクリックでタブ選択→翻訳開始
+    if(startBig) startBig.textContent='▶ 開始';
+    var _h=document.querySelector('#startPrompt .sp-hint');
+    if(_h) _h.innerHTML='✅ <b style="color:rgb(var(--ui-rgb))">準備完了</b>！押すとタブを選んで翻訳がスタートします';
+    interim.textContent='✅ モデル準備完了';
+    return; // 共有は次のクリックで (タブ選択→翻訳開始)
   }
 
   // STEP 2: 画面共有 (クリック直後に getDisplayMedia を呼ぶ＝ユーザー操作が有効)
@@ -556,6 +560,10 @@ splitH.onpointerup=e=>{ splitDrag=false; splitH.classList.remove('drag'); appEl.
 function stopShare(){
   running=false; appEl.classList.remove('live'); liveDot.classList.remove('on'); wave.style.display='none';
   startBtn.textContent='▶ START'; startBtn.style.background='';
+  // CTA を元に戻す (モデルが準備済みなら次回は1クリックで共有)
+  if(startBig) startBig.textContent = asr ? '▶ 開始' : '▶ 始める';
+  var _h=document.querySelector('#startPrompt .sp-hint');
+  if(_h) _h.innerHTML = asr ? '押すとタブを選んで翻訳がスタートします' : '押すとタブ共有で字幕がスタート<br><span style="opacity:.65">言語は右上で設定 ・ 初回のみモデルを安全にDL</span>';
   clearTimeout(autoTimer);
   try{ proc&&(proc.onaudioprocess=null); srcNode&&srcNode.disconnect(); proc&&proc.disconnect(); }catch(e){}
   try{ audioCtx&&audioCtx.close(); }catch(e){}
