@@ -289,15 +289,29 @@
   .dp-share{font-size:10.5px;font-weight:700;color:#fff;background:var(--grad);padding:5px 14px;border-radius:7px;transition:transform .12s}
   .dp-share.press{transform:scale(.92)}
   /* シーン3 字幕フィード */
-  .dp-feed{position:absolute;inset:0;padding:11px 12px;display:flex;flex-direction:column;justify-content:flex-start;gap:8px;opacity:0;transition:opacity .35s}
-  .dp-feed.show{opacity:1}
-  .dp-fhead{display:flex;gap:10px;font-size:9px;font-weight:700;letter-spacing:.5px;color:var(--tx3);padding-bottom:6px;border-bottom:1px solid var(--border)}
-  .dp-fhead span{flex:1;min-width:0}
-  .dp-fhead span:last-child{color:rgb(var(--ui-rgb))}
-  .dp-ln{display:flex;gap:10px;opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s}
+  /* シーン3: ライブ split (左=共有タブ / 右=翻訳フィード) */
+  .dp-live{position:absolute;inset:0;display:flex;opacity:0;transition:opacity .4s}
+  .dp-live.show{opacity:1}
+  .dp-srctab{flex:.92;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--border);background:rgba(0,0,0,.28)}
+  .dp-tabtop{display:flex;align-items:center;gap:5px;padding:6px 8px;border-bottom:1px solid var(--border)}
+  .dp-srctab .dp-fav{width:14px;height:14px;font-size:9px}
+  .dp-tt{flex:1;min-width:0;font-size:9px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dp-livedot{font-size:7.5px;font-weight:700;letter-spacing:.5px;color:#ff5f56;white-space:nowrap}
+  .dp-tabbody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px}
+  .dp-av{font-size:26px;filter:drop-shadow(0 3px 10px rgba(99,102,241,.55))}
+  .dp-bars{display:flex;align-items:flex-end;gap:3px;height:30px}
+  .dp-bars i{width:3px;height:100%;background:linear-gradient(rgb(var(--ui-rgb)),#a855f7);border-radius:2px;transform:scaleY(.25);transform-origin:bottom;animation:wv 1s ease-in-out infinite}
+  .dp-bars i:nth-child(2n){animation-duration:.8s}.dp-bars i:nth-child(3n){animation-duration:1.2s}
+  .dp-bars i:nth-child(1){animation-delay:.0s}.dp-bars i:nth-child(2){animation-delay:.12s}.dp-bars i:nth-child(3){animation-delay:.24s}.dp-bars i:nth-child(4){animation-delay:.36s}.dp-bars i:nth-child(5){animation-delay:.48s}.dp-bars i:nth-child(6){animation-delay:.6s}.dp-bars i:nth-child(7){animation-delay:.5s}.dp-bars i:nth-child(8){animation-delay:.38s}.dp-bars i:nth-child(9){animation-delay:.26s}.dp-bars i:nth-child(10){animation-delay:.14s}.dp-bars i:nth-child(11){animation-delay:.3s}.dp-bars i:nth-child(12){animation-delay:.2s}
+  .dp-rightpane{flex:1.12;min-width:0;display:flex;flex-direction:column;padding:8px 9px}
+  .dp-fhead2{display:flex;gap:8px;font-size:8.5px;font-weight:700;letter-spacing:.5px;color:var(--tx3);padding-bottom:5px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .dp-fhead2 span{flex:1;min-width:0}
+  .dp-fhead2 span:last-child{color:rgb(var(--ui-rgb))}
+  .dp-feed{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:flex-start;gap:7px;padding-top:7px;overflow:hidden}
+  .dp-ln{display:flex;gap:8px;opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s}
   .dp-ln.in{opacity:1;transform:none}
-  .dp-ln .s{flex:1;min-width:0;font-size:10.5px;color:var(--tx3);line-height:1.45}
-  .dp-ln .d{flex:1;min-width:0;font-size:11.5px;color:var(--tx);font-weight:600;line-height:1.5;border-left:1px solid var(--border);padding-left:10px}
+  .dp-ln .s{flex:1;min-width:0;font-size:9px;color:var(--tx3);line-height:1.4}
+  .dp-ln .d{flex:1;min-width:0;font-size:10px;color:var(--tx);font-weight:600;line-height:1.45;border-left:1px solid var(--border);padding-left:8px}
   .dp-ln .d .cur2{display:inline-block;width:1.5px;height:.95em;background:rgb(var(--ui-rgb));vertical-align:-1px;margin-left:1px;animation:blink 1s steps(1) infinite}
   /* カーソル / ステップラベル */
   .dp-cursor{position:absolute;left:50%;top:50%;width:16px;height:16px;z-index:9;pointer-events:none;opacity:0;transition:opacity .25s,left .55s cubic-bezier(.4,.1,.2,1),top .55s cubic-bezier(.4,.1,.2,1);
@@ -459,8 +473,20 @@
               <div class="dp-row"><span class="dp-fav">𝕏</span><span class="dp-rt">English Tech Space</span></div>
               <div class="dp-foot"><span class="dp-audio">🔊 <span data-ja="タブの音声も共有" data-en="Share tab audio">タブの音声も共有</span> <i class="dp-toggle"></i></span><span class="dp-share" data-ja="共有" data-en="Share">共有</span></div>
             </div>
-            <!-- シーン3: 字幕フィード -->
-            <div class="dp-feed"></div>
+            <!-- シーン3: ライブ (左=共有タブ / 右=翻訳が流れる) -->
+            <div class="dp-live">
+              <div class="dp-srctab">
+                <div class="dp-tabtop"><span class="dp-fav">𝕏</span><span class="dp-tt">English Tech Space</span><span class="dp-livedot">●&nbsp;LIVE</span></div>
+                <div class="dp-tabbody">
+                  <span class="dp-av">🎙</span>
+                  <div class="dp-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                </div>
+              </div>
+              <div class="dp-rightpane">
+                <div class="dp-fhead2"><span>English</span><span>日本語</span></div>
+                <div class="dp-feed"></div>
+              </div>
+            </div>
             <!-- カーソル / ステップ表示 -->
             <span class="dp-cursor"></span>
             <span class="dp-label"></span>
@@ -900,6 +926,7 @@ chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) ma
   const start=root.querySelector('.dp-start'), btn=root.querySelector('.dp-btn');
   const dialog=root.querySelector('.dp-dialog'), row=root.querySelector('.dp-row'), share=root.querySelector('.dp-share');
   const feed=root.querySelector('.dp-feed'), cursor=root.querySelector('.dp-cursor'), label=root.querySelector('.dp-label');
+  const live=root.querySelector('.dp-live');
   const LINES=[
     {s:"Welcome everyone to today's space.", d:"本日のスペースへようこそ。"},
     {s:"The audio runs right in your browser.", d:"音声はこのブラウザ内で処理されます。"},
@@ -913,7 +940,7 @@ chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) ma
   async function waitVisible(){ while(!visible()) await sleep(400); }
   function moveCursor(el){ const s=stage.getBoundingClientRect(), r=el.getBoundingClientRect(); if(!s.width) return;
     cursor.style.left=((r.left+r.width/2 - s.left)/s.width*100)+'%'; cursor.style.top=((r.top+r.height/2 - s.top)/s.height*100)+'%'; }
-  function reset(){ start.classList.remove('show'); dialog.classList.remove('show'); feed.classList.remove('show');
+  function reset(){ start.classList.remove('show'); dialog.classList.remove('show'); live.classList.remove('show');
     row.classList.remove('sel'); cursor.classList.remove('show'); label.classList.remove('show');
     btn.classList.remove('press'); share.classList.remove('press'); feed.innerHTML=''; }
   async function typeInto(node,text){ for(let i=1;i<=text.length;i++){ node.nodeValue=text.slice(0,i); await sleep(24); } }
@@ -928,10 +955,7 @@ chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) ma
     moveCursor(row); await sleep(680); row.classList.add('sel'); await sleep(480);
     moveCursor(share); await sleep(680); share.classList.add('press'); await sleep(170); share.classList.remove('press'); await sleep(240);
     // ③ 字幕フィード
-    dialog.classList.remove('show'); cursor.classList.remove('show'); setLabel('s3'); feed.classList.add('show');
-    const head=document.createElement('div'); head.className='dp-fhead';
-    const hl=document.createElement('span'); hl.textContent='English'; const hr=document.createElement('span'); hr.textContent='日本語';
-    head.appendChild(hl); head.appendChild(hr); feed.appendChild(head);
+    dialog.classList.remove('show'); cursor.classList.remove('show'); setLabel('s3'); live.classList.add('show');
     for(const it of LINES){
       const ln=document.createElement('div'); ln.className='dp-ln';
       const s=document.createElement('div'); s.className='s'; s.textContent=it.s;
