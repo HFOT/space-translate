@@ -56,6 +56,8 @@
   .lp-feats{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
   .lp-chip{font-size:11px;color:var(--tx2);border:1px solid var(--border);border-radius:980px;padding:5px 11px;background:rgba(255,255,255,.03)}
   .lp-note{color:var(--tx3);font-size:11px}
+  .lp-tip{max-width:390px;margin:0 auto 14px;font-size:12px;line-height:1.65;color:var(--tx2);background:rgba(47,224,196,.06);border:1px solid rgba(47,224,196,.18);border-radius:12px;padding:10px 14px}
+  .lp-tip b{color:var(--tx)}
   .lp-brand{display:inline-flex;align-items:center;gap:9px;margin-bottom:24px}
   .lp-brand .logo{width:26px;height:26px}
   .lp-brand b{font-size:16px;font-weight:700;letter-spacing:.01em;color:var(--tx)}
@@ -271,6 +273,7 @@
           <span class="lp-chip">🆓 文字起こし・翻訳は無料</span>
           <span class="lp-chip">📋 整える / 要約</span>
         </div>
+        <div class="lp-tip"><b>📋 整える / 要約</b>は任意。<b>自分のAPIキー</b>を繋いでアプリ内で処理、または<b>字幕をコピーして普段使いのAI</b>（ChatGPT等）に要約してもらってもOK。</div>
         <div class="lp-note">🔒 音声は端末内だけで処理／音声モデルは Hugging Face の公開 Whisper を初回のみ取得<br>Chrome / Edge 推奨・Mac はタブ音声のみ</div>
       </div>
       <video id="vid" autoplay muted playsinline style="display:none"></video>
