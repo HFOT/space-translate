@@ -357,7 +357,7 @@
     <div id="rHead">
       <span class="dot" id="liveDot"></span>
       <b style="font-size:12px;color:var(--tx2)">LIVE</b>
-      <button class="btn" id="chSilent" title="Space登壇者向け。ON＋共有タブ(or PC)をミュートで、音は消えても字幕は動き続けます。" style="padding:5px 11px;font-size:12px;margin-left:6px">🔇 音なし</button>
+      <button class="btn" id="chSilent" title="※PCの音量０でも翻訳継続できます（共有タブをミュートしてもOK）" style="padding:5px 11px;font-size:12px;margin-left:6px">🔇 音無し翻訳MODE</button>
       <span class="sp"></span>
       <select id="fromSel" title="音声(原文)の言語">
         <option value="auto">自動判定</option><option value="en" selected>英語 EN</option><option value="ja">日本語 JP</option>
@@ -597,7 +597,7 @@ async function onStart(){
   running=true; appEl.classList.add('live'); liveDot.classList.add('on'); startMs=Date.now(); wave.style.display='flex';
   startBtn.textContent='⏹ STOP'; startBtn.style.background='#e74c3c'; startBtn.style.color='#fff';
   interim.textContent = (localStorage.getItem('silent_mode')==='1')
-    ? '🔇 音なしモード ON — 共有タブ/PC をミュートしてOK（字幕は動き続けます）'
+    ? '🔇 音無し翻訳MODE ON ※PCの音量０でも翻訳継続できます'
     : '🔊 取り込み中… (音が鳴れば字幕が出ます)';
 }
 startBtn.onclick = onStart;
@@ -637,7 +637,7 @@ function setSilent(on){
   if(chSilent) chSilent.classList.toggle('on', on);
   try{ if(vid) vid.muted=true; }catch(e){} // アプリ側は常に無音
   if(running) interim.textContent = on
-    ? '🔇 音なしモード ON — 共有タブ/PC をミュートしてOK（字幕は内部で動き続けます）'
+    ? '🔇 音無し翻訳MODE ON ※PCの音量０でも翻訳継続できます'
     : '🔊 取り込み中… (音が鳴れば字幕が出ます)';
 }
 if(chSilent) chSilent.onclick=()=> setSilent(!chSilent.classList.contains('on'));
