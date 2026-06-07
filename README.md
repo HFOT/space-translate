@@ -46,7 +46,7 @@ Then open **http://localhost:8000/app.html** in **desktop Chrome / Edge**.
 
 1. Open the page you want to translate in **another tab**.
 2. Press **▶ START**. On the **first run** it safely downloads the open-source Whisper model
-   (~150 MB, from Hugging Face) and caches it — no re-download after that.
+   (a few tens of MB, from Hugging Face) and caches it — no re-download after that.
 3. Pick that tab and **tick “Also share tab audio.”**
 
 > macOS only allows **tab** audio (no full-system audio). Chrome / Edge desktop recommended.
