@@ -468,7 +468,7 @@
             <div class="dp-dialog">
               <div class="dp-dlg-title" data-ja="共有するタブを選択" data-en="Choose a tab to share">共有するタブを選択</div>
               <div class="dp-tabs">
-                <span class="dp-tab on">タブ</span><span class="dp-tab" data-ja="ウィンドウ" data-en="Window">ウィンドウ</span><span class="dp-tab" data-ja="画面全体" data-en="Screen">画面全体</span>
+                <span class="dp-tab on" data-ja="タブ" data-en="Tab">タブ</span><span class="dp-tab" data-ja="ウィンドウ" data-en="Window">ウィンドウ</span><span class="dp-tab" data-ja="画面全体" data-en="Screen">画面全体</span>
               </div>
               <div class="dp-row"><span class="dp-fav">𝕏</span><span class="dp-rt">English Tech Space</span></div>
               <div class="dp-foot"><span class="dp-audio">🔊 <span data-ja="タブの音声も共有" data-en="Share tab audio">タブの音声も共有</span> <i class="dp-toggle"></i></span><span class="dp-share" data-ja="共有" data-en="Share">共有</span></div>
@@ -927,10 +927,14 @@ chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) ma
   const dialog=root.querySelector('.dp-dialog'), row=root.querySelector('.dp-row'), share=root.querySelector('.dp-share');
   const feed=root.querySelector('.dp-feed'), cursor=root.querySelector('.dp-cursor'), label=root.querySelector('.dp-label');
   const live=root.querySelector('.dp-live');
+  const srcName=root.querySelector('.dp-tt'), rowName=root.querySelector('.dp-rt'), headSpans=root.querySelectorAll('.dp-fhead2 span');
+  // 日英両方を保持。表示言語で原文/訳の向きを切替 (JP表示=EN→JP / EN表示=JP→EN)
   const LINES=[
-    {s:"Welcome everyone to today's space.", d:"本日のスペースへようこそ。"},
-    {s:"The audio runs right in your browser.", d:"音声はこのブラウザ内で処理されます。"},
-    {s:"No install, no API key to start.", d:"インストールもAPIキーも不要で始められます。"}
+    {en:"Welcome everyone to today's space.", ja:"本日のスペースへようこそ。"},
+    {en:"The audio runs right here in your browser.", ja:"音声はこのブラウザ内で処理されます。"},
+    {en:"No install, no API key needed to start.", ja:"インストールもAPIキーも不要で始められます。"},
+    {en:"Captions appear in real time as people speak.", ja:"話している内容がそのまま字幕になります。"},
+    {en:"Later, AI can refine them into clean prose.", ja:"あとでAIが読みやすい文章に整えてくれます。"}
   ];
   const isEN=()=>document.documentElement.lang==='en';
   const STEP={s1:['① Start を押す','① Press Start'],s2:['② タブを選んで共有','② Pick a tab & share'],s3:['③ 字幕が流れる','③ Captions stream in']};
@@ -946,6 +950,13 @@ chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) ma
   async function typeInto(node,text){ for(let i=1;i<=text.length;i++){ node.nodeValue=text.slice(0,i); await sleep(24); } }
   async function play(){
     reset();
+    const en=isEN();
+    // 表示言語に合わせて文言を切替 (JP表示=EN→JP / EN表示=JP→EN)
+    btn.textContent = en?'▶ Start':'▶ 始める';
+    const tabName = en?'日本語ライブ Space':'English Tech Space';
+    srcName.textContent=tabName; rowName.textContent=tabName;
+    headSpans[0].textContent = en?'日本語':'English';
+    headSpans[1].textContent = en?'English':'日本語';
     // ① スタート
     setLabel('s1'); label.classList.add('show'); start.classList.add('show');
     await sleep(450); cursor.classList.add('show'); moveCursor(btn);
@@ -954,19 +965,20 @@ chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) ma
     start.classList.remove('show'); setLabel('s2'); dialog.classList.add('show'); await sleep(520);
     moveCursor(row); await sleep(680); row.classList.add('sel'); await sleep(480);
     moveCursor(share); await sleep(680); share.classList.add('press'); await sleep(170); share.classList.remove('press'); await sleep(240);
-    // ③ 字幕フィード
+    // ③ ライブ (左=共有タブ / 右=翻訳が流れる)
     dialog.classList.remove('show'); cursor.classList.remove('show'); setLabel('s3'); live.classList.add('show');
     for(const it of LINES){
+      const srcTxt = en?it.ja:it.en, dstTxt = en?it.en:it.ja;
       const ln=document.createElement('div'); ln.className='dp-ln';
-      const s=document.createElement('div'); s.className='s'; s.textContent=it.s;
+      const s=document.createElement('div'); s.className='s'; s.textContent=srcTxt;
       const d=document.createElement('div'); d.className='d';
       const tn=document.createTextNode(''); const cur=document.createElement('span'); cur.className='cur2';
       d.appendChild(tn); d.appendChild(cur);
       ln.appendChild(s); ln.appendChild(d); feed.appendChild(ln);
       requestAnimationFrame(()=>ln.classList.add('in'));
-      await sleep(260); await typeInto(tn, it.d); await sleep(520);
+      await sleep(280); await typeInto(tn, dstTxt); await sleep(750);
     }
-    await sleep(1600);
+    await sleep(2400);
   }
   (async function loop(){ while(true){ await waitVisible(); try{ await play(); }catch(e){} await sleep(800); } })();
 })();
