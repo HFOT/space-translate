@@ -250,7 +250,7 @@
         <p class="lp-sub">Xスペースや動画の声を、その場で字幕化して翻訳。<br>AIが断片を読みやすい文章にも整えます。</p>
         <div class="lp-steps">
           <div class="lp-step"><span class="lp-n">1</span><span>翻訳したいサイトを<b>別タブ</b>で開く</span></div>
-          <div class="lp-step"><span class="lp-n">2</span><span>右上の <b class="ac">▶ START</b> を押す（初回はモデルDL）</span></div>
+          <div class="lp-step"><span class="lp-n">2</span><span>右上の <b class="ac">▶ START</b> を押す<br><span style="color:var(--tx3);font-size:11px">初回のみ、公開モデル（OpenAI Whisper / Hugging Face）を安全にDL</span></span></div>
           <div class="lp-step"><span class="lp-n">3</span><span>そのタブを選び <b>「タブの音声も共有」</b>にチェック</span></div>
         </div>
         <div class="lp-feats">
@@ -258,7 +258,7 @@
           <span class="lp-chip">🆓 文字起こし・翻訳は無料</span>
           <span class="lp-chip">📋 整える / 要約</span>
         </div>
-        <div class="lp-note">Chrome / Edge 推奨・Mac はタブ音声のみ</div>
+        <div class="lp-note">🔒 音声は端末内だけで処理／音声モデルは Hugging Face の公開 Whisper を初回のみ取得<br>Chrome / Edge 推奨・Mac はタブ音声のみ</div>
       </div>
       <video id="vid" autoplay muted playsinline style="display:none"></video>
     </div>
@@ -400,7 +400,7 @@ async function ensureASR(){
   if(asr) return asr;
   // 初回のみ: モデルDLの確認 (以後はブラウザにキャッシュされるので確認しない)
   if(!localStorage.getItem('whisper_dl_ok')){
-    if(!confirm('音声認識モデル「Whisper ('+WHISPER_MODEL+')」を初回だけダウンロードします。\n数十MB・以後はブラウザにキャッシュされ再DLなし。\n\nダウンロードして開始しますか？')){
+    if(!confirm('初回のみ、音声認識モデルを安全にダウンロードします。\n\n● 提供元：Hugging Face（世界標準の公開AIモデル配布サイト）\n● 内容：OpenAI のオープンソース音声認識モデル Whisper（'+WHISPER_MODEL+'）\n● 約150MB／以後はブラウザにキャッシュされ再ダウンロードなし\n● 音声はこの端末内だけで処理され、外部には送信されません\n\nダウンロードして開始しますか？')){
       throw new Error('cancelled');
     }
   }

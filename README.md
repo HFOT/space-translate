@@ -13,7 +13,9 @@ It's a single self-contained HTML page. Everything runs client-side.
 ## ✨ Features
 
 - 🎧 **Captures system/tab audio** via screen-share — works even with headphones on.
-- 📝 **In-browser speech-to-text** with Whisper (Transformers.js / WebGPU). Audio never leaves your device.
+- 📝 **In-browser speech-to-text** with **OpenAI's open-source Whisper** model — downloaded once
+  from **[Hugging Face](https://huggingface.co/)** (the standard public AI-model hub) and cached.
+  Audio never leaves your device.
 - 🌐 **Free translation** (Lingva → MyMemory fallback). No API key required.
 - 📋 **AI "refine / summarize"** (optional): turn choppy captions into readable text, or summarize.
   Bring your own key — Gemini / Groq / OpenRouter / Claude / Grok — or just copy the captions
@@ -43,7 +45,8 @@ python -m http.server 8000
 Then open **http://localhost:8000/app.html** in **desktop Chrome / Edge**.
 
 1. Open the page you want to translate in **another tab**.
-2. Press **▶ START** (first run downloads the Whisper model, ~150 MB, cached after).
+2. Press **▶ START**. On the **first run** it safely downloads the open-source Whisper model
+   (~150 MB, from Hugging Face) and caches it — no re-download after that.
 3. Pick that tab and **tick “Also share tab audio.”**
 
 > macOS only allows **tab** audio (no full-system audio). Chrome / Edge desktop recommended.
