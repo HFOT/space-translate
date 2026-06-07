@@ -258,6 +258,54 @@
   .disc b{color:#e8e8ed;font-weight:600}
   .disc code{background:rgba(41,151,255,.16);color:#e8e8ed;padding:1px 6px;border-radius:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
   @media(max-width:640px){ .feats{grid-template-columns:1fr} .flow{flex-direction:column;gap:24px;max-width:300px} .flow::before{display:none} }
+
+  /* ===== 使い方プレビュー (右パネル・ループ自動再生) ===== */
+  #demoPrev{width:min(100%,420px);margin:22px auto 0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:rgba(0,0,0,.28);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .dp-bar{display:flex;align-items:center;gap:6px;padding:7px 11px;background:rgba(255,255,255,.04);border-bottom:1px solid var(--border)}
+  .dp-d{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .dp-d.r{background:#ff5f56}.dp-d.y{background:#ffbd2e}.dp-d.g{background:#27c93f}
+  .dp-cap{margin-left:6px;font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--tx3);font-family:var(--mono)}
+  .dp-stage{position:relative;height:208px;overflow:hidden;background:radial-gradient(120% 80% at 50% 0%,rgba(99,102,241,.08),transparent 60%)}
+  /* シーン1 スタート */
+  .dp-start{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .35s}
+  .dp-start.show{opacity:1}
+  .dp-btn{background:var(--grad);color:#fff;font-weight:700;font-size:14px;padding:11px 30px;border-radius:980px;box-shadow:0 6px 20px rgba(99,102,241,.4);font-family:var(--mono);transition:transform .12s}
+  .dp-btn.press{transform:scale(.93)}
+  /* シーン2 共有ダイアログ */
+  .dp-dialog{position:absolute;left:50%;top:50%;width:88%;transform:translate(-50%,-44%) scale(.96);background:#15171c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:11px 12px;box-shadow:0 18px 44px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;font-family:var(--mono)}
+  .dp-dialog.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .dp-dlg-title{font-size:11px;color:#c9d2d2;margin-bottom:8px;font-weight:600}
+  .dp-tabs{display:flex;gap:4px;margin-bottom:9px}
+  .dp-tab{font-size:10px;color:var(--tx3);padding:4px 9px;border-radius:6px;background:rgba(255,255,255,.04)}
+  .dp-tab.on{color:#fff;background:rgba(99,102,241,.32)}
+  .dp-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;border:1px solid transparent;background:rgba(255,255,255,.03);transition:.2s}
+  .dp-row.sel{border-color:rgb(var(--ui-rgb));background:rgba(99,102,241,.16)}
+  .dp-fav{width:18px;height:18px;border-radius:4px;background:#000;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .dp-rt{font-size:11px;color:var(--tx)}
+  .dp-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  .dp-audio{font-size:9.5px;color:var(--tx2);display:inline-flex;align-items:center;gap:5px}
+  .dp-toggle{width:22px;height:12px;border-radius:980px;background:rgb(var(--ui-rgb));position:relative;display:inline-block}
+  .dp-toggle::after{content:"";position:absolute;top:1.5px;right:1.5px;width:9px;height:9px;border-radius:50%;background:#fff}
+  .dp-share{font-size:10.5px;font-weight:700;color:#fff;background:var(--grad);padding:5px 14px;border-radius:7px;transition:transform .12s}
+  .dp-share.press{transform:scale(.92)}
+  /* シーン3 字幕フィード */
+  .dp-feed{position:absolute;inset:0;padding:10px 12px;display:flex;flex-direction:column;justify-content:flex-end;gap:7px;opacity:0;transition:opacity .35s}
+  .dp-feed.show{opacity:1}
+  .dp-ln{opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s}
+  .dp-ln.in{opacity:1;transform:none}
+  .dp-ln .s{font-size:10px;color:var(--tx3);line-height:1.4}
+  .dp-ln .d{font-size:12px;color:var(--tx);font-weight:600;line-height:1.45;margin-top:1px}
+  .dp-ln .d .cur2{display:inline-block;width:1.5px;height:.95em;background:rgb(var(--ui-rgb));vertical-align:-1px;margin-left:1px;animation:blink 1s steps(1) infinite}
+  /* カーソル / ステップラベル */
+  .dp-cursor{position:absolute;left:50%;top:50%;width:16px;height:16px;z-index:9;pointer-events:none;opacity:0;transition:opacity .25s,left .55s cubic-bezier(.4,.1,.2,1),top .55s cubic-bezier(.4,.1,.2,1);
+    background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 3l14 7-6 1.5L9 19z' fill='white' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E");filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+  .dp-cursor.show{opacity:1}
+  .dp-label{position:absolute;left:10px;top:9px;z-index:8;font-size:10px;font-weight:700;color:rgb(var(--ui-rgb));font-family:var(--mono);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:980px;opacity:0;transition:opacity .3s}
+  .dp-label.show{opacity:1}
+  [data-theme="light"] #demoPrev{background:rgba(0,0,0,.04)}
+  [data-theme="light"] .dp-dialog{background:#ffffff;border-color:#d6dcde}
+  [data-theme="light"] .dp-dlg-title{color:#48535a}
+  [data-theme="light"] .dp-rt{color:#17191c}
 </style>
 </head>
 <body>
@@ -392,6 +440,29 @@
         <svg class="sp-logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="url(#sgrad)"/><g fill="#fff"><rect x="9.6" y="17" width="2.8" height="6" rx="1.4"/><rect x="15" y="12" width="2.8" height="16" rx="1.4"/><rect x="20.4" y="15" width="2.8" height="10" rx="1.4"/><rect x="25.8" y="10.5" width="2.8" height="19" rx="1.4"/></g></svg>
         <button class="btn primary" id="startBig" data-ja="▶ 始める" data-en="▶ Start">▶ 始める</button>
         <div class="sp-hint" data-ja="押すとタブ共有で字幕がスタート<br><span style='opacity:.65'>言語は右上で設定 ・ 初回のみモデルを安全にDL</span>" data-en="Press to share a tab and start captions<br><span style='opacity:.65'>Set language top-right · Model downloads once on first use</span>">押すとタブ共有で字幕がスタート<br><span style="opacity:.65">言語は右上で設定 ・ 初回のみモデルを安全にDL</span></div>
+
+        <!-- 使い方プレビュー (ループ自動再生) -->
+        <div id="demoPrev" aria-hidden="true">
+          <div class="dp-bar"><span class="dp-d r"></span><span class="dp-d y"></span><span class="dp-d g"></span><span class="dp-cap" data-ja="使い方プレビュー" data-en="How it works">使い方プレビュー</span></div>
+          <div class="dp-stage">
+            <!-- シーン1: スタート -->
+            <div class="dp-start"><span class="dp-btn">▶ Start</span></div>
+            <!-- シーン2: 共有ダイアログ (スクショ再現・簡易版) -->
+            <div class="dp-dialog">
+              <div class="dp-dlg-title" data-ja="共有するタブを選択" data-en="Choose a tab to share">共有するタブを選択</div>
+              <div class="dp-tabs">
+                <span class="dp-tab on">タブ</span><span class="dp-tab" data-ja="ウィンドウ" data-en="Window">ウィンドウ</span><span class="dp-tab" data-ja="画面全体" data-en="Screen">画面全体</span>
+              </div>
+              <div class="dp-row"><span class="dp-fav">𝕏</span><span class="dp-rt">English Tech Space</span></div>
+              <div class="dp-foot"><span class="dp-audio">🔊 <span data-ja="タブの音声も共有" data-en="Share tab audio">タブの音声も共有</span> <i class="dp-toggle"></i></span><span class="dp-share" data-ja="共有" data-en="Share">共有</span></div>
+            </div>
+            <!-- シーン3: 字幕フィード -->
+            <div class="dp-feed"></div>
+            <!-- カーソル / ステップ表示 -->
+            <span class="dp-cursor"></span>
+            <span class="dp-label"></span>
+          </div>
+        </div>
       </div>
     </div>
     <div id="interim" data-ja="準備中… モデルは初回のみ自動ダウンロード" data-en="Preparing… Model downloads once on first use">準備中… モデルは初回のみ自動ダウンロード</div>
@@ -816,6 +887,59 @@ cpyAll.onclick=()=>{ const t=[...feed.querySelectorAll('.dst')].map(l=>l.textCon
 chShori.onclick=()=>{ if(mode!=='prose'){ mode='prose'; sumIdx=0; summary=''; } if(!sumOpen){ sumOpen=true; applyOpen(); } doRefine(true); };
 chYoyaku.onclick=()=>{ if(mode!=='digest'){ mode='digest'; sumIdx=0; summary=''; } if(!sumOpen){ sumOpen=true; applyOpen(); } doRefine(true); };
 chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) maybeAuto(); };
+</script>
+
+<!-- 使い方プレビュー: 本体ロジックとは独立した自己完結スクリプト (#demoPrev サブツリーのみ操作) -->
+<script>
+(function(){
+  const root=document.getElementById('demoPrev'); if(!root) return;
+  const stage=root.querySelector('.dp-stage');
+  const start=root.querySelector('.dp-start'), btn=root.querySelector('.dp-btn');
+  const dialog=root.querySelector('.dp-dialog'), row=root.querySelector('.dp-row'), share=root.querySelector('.dp-share');
+  const feed=root.querySelector('.dp-feed'), cursor=root.querySelector('.dp-cursor'), label=root.querySelector('.dp-label');
+  const LINES=[
+    {s:"Welcome everyone to today's space.", d:"本日のスペースへようこそ。"},
+    {s:"The audio runs right in your browser.", d:"音声はこのブラウザ内で処理されます。"},
+    {s:"No install, no API key to start.", d:"インストールもAPIキーも不要で始められます。"}
+  ];
+  const isEN=()=>document.documentElement.lang==='en';
+  const STEP={s1:['① Start を押す','① Press Start'],s2:['② タブを選んで共有','② Pick a tab & share'],s3:['③ 字幕が流れる','③ Captions stream in']};
+  const setLabel=k=>{ label.textContent=isEN()?STEP[k][1]:STEP[k][0]; };
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const visible=()=>!document.hidden && root.offsetParent!==null;
+  async function waitVisible(){ while(!visible()) await sleep(400); }
+  function moveCursor(el){ const s=stage.getBoundingClientRect(), r=el.getBoundingClientRect(); if(!s.width) return;
+    cursor.style.left=((r.left+r.width/2 - s.left)/s.width*100)+'%'; cursor.style.top=((r.top+r.height/2 - s.top)/s.height*100)+'%'; }
+  function reset(){ start.classList.remove('show'); dialog.classList.remove('show'); feed.classList.remove('show');
+    row.classList.remove('sel'); cursor.classList.remove('show'); label.classList.remove('show');
+    btn.classList.remove('press'); share.classList.remove('press'); feed.innerHTML=''; }
+  async function typeInto(node,text){ for(let i=1;i<=text.length;i++){ node.nodeValue=text.slice(0,i); await sleep(24); } }
+  async function play(){
+    reset();
+    // ① スタート
+    setLabel('s1'); label.classList.add('show'); start.classList.add('show');
+    await sleep(450); cursor.classList.add('show'); moveCursor(btn);
+    await sleep(750); btn.classList.add('press'); await sleep(170); btn.classList.remove('press'); await sleep(220);
+    // ② 共有ダイアログ
+    start.classList.remove('show'); setLabel('s2'); dialog.classList.add('show'); await sleep(520);
+    moveCursor(row); await sleep(680); row.classList.add('sel'); await sleep(480);
+    moveCursor(share); await sleep(680); share.classList.add('press'); await sleep(170); share.classList.remove('press'); await sleep(240);
+    // ③ 字幕フィード
+    dialog.classList.remove('show'); cursor.classList.remove('show'); setLabel('s3'); feed.classList.add('show');
+    for(const it of LINES){
+      const ln=document.createElement('div'); ln.className='dp-ln';
+      const s=document.createElement('div'); s.className='s'; s.textContent=it.s;
+      const d=document.createElement('div'); d.className='d';
+      const tn=document.createTextNode(''); const cur=document.createElement('span'); cur.className='cur2';
+      d.appendChild(tn); d.appendChild(cur);
+      ln.appendChild(s); ln.appendChild(d); feed.appendChild(ln);
+      requestAnimationFrame(()=>ln.classList.add('in'));
+      await sleep(260); await typeInto(tn, it.d); await sleep(520);
+    }
+    await sleep(1600);
+  }
+  (async function loop(){ while(true){ await waitVisible(); try{ await play(); }catch(e){} await sleep(800); } })();
+})();
 </script>
 </body>
 </html>
