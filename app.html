@@ -290,7 +290,7 @@
   .dp-share.press{transform:scale(.92)}
   /* シーン3 字幕フィード */
   /* シーン3: ライブ split (左=共有タブ / 右=翻訳フィード) */
-  .dp-live{position:absolute;inset:0;display:flex;opacity:0;transition:opacity .4s}
+  .dp-live{position:absolute;left:0;right:0;bottom:0;top:30px;display:flex;opacity:0;transition:opacity .4s}
   .dp-live.show{opacity:1}
   .dp-srctab{flex:.92;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--border);background:rgba(0,0,0,.28)}
   .dp-tabtop{display:flex;align-items:center;gap:5px;padding:6px 8px;border-bottom:1px solid var(--border)}
@@ -955,7 +955,7 @@ chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) ma
     moveCursor(row); await sleep(680); row.classList.add('sel'); await sleep(480);
     moveCursor(share); await sleep(680); share.classList.add('press'); await sleep(170); share.classList.remove('press'); await sleep(240);
     // ③ 字幕フィード
-    dialog.classList.remove('show'); cursor.classList.remove('show'); label.classList.remove('show'); live.classList.add('show');
+    dialog.classList.remove('show'); cursor.classList.remove('show'); setLabel('s3'); live.classList.add('show');
     for(const it of LINES){
       const ln=document.createElement('div'); ln.className='dp-ln';
       const s=document.createElement('div'); s.className='s'; s.textContent=it.s;
