@@ -48,7 +48,7 @@
   #vidWrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;overflow:hidden}
   #vid{max-width:100%;max-height:100%;background:#000}
   /* 左ペイン: 共有前のランディング (共有中は video に切替) */
-  #vidHint{max-width:640px;width:100%;max-height:100%;overflow-y:auto;padding:34px 34px;color:var(--tx2);text-align:center}
+  #vidHint{max-width:640px;width:100%;max-height:100%;overflow-y:auto;padding:34px 34px;color:var(--tx2);text-align:left}
   .lp-eyebrow{display:inline-flex;align-items:center;gap:7px;color:rgb(var(--ui-rgb));font-size:12px;font-weight:700;letter-spacing:1px;font-family:var(--mono);margin-bottom:16px}
   .lp-eyebrow .logo{width:22px;height:22px}
   .lp-h1{font-size:clamp(32px,4.6vw,56px);font-weight:700;line-height:1.08;letter-spacing:-.02em;color:var(--tx);margin:0 0 18px}
@@ -59,13 +59,20 @@
   .lp-step{display:flex;align-items:center;gap:13px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:13px 16px;color:var(--tx2);font-size:13px;line-height:1.5}
   .lp-step b{color:var(--tx)} .lp-step b.ac{color:rgb(var(--ui-rgb))}
   .lp-n{width:24px;height:24px;flex-shrink:0;border-radius:50%;background:rgb(var(--ui-rgb));color:#04080a;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+  /* 横ロードマップ (縦の123を横に) */
+  .lp-flow{position:relative;display:flex;justify-content:space-between;gap:6px;margin:8px 0 30px}
+  .lp-flow::before{content:"";position:absolute;top:20px;left:16%;right:16%;height:2px;background:linear-gradient(90deg,rgb(var(--ui-rgb)),#38d0ff);opacity:.5;z-index:0}
+  .lp-fstep{position:relative;z-index:1;flex:1;text-align:center;padding:0 4px}
+  .lp-fnum{width:40px;height:40px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;background:rgb(var(--ui-rgb));color:#04080a;font-weight:700;font-size:16px;box-shadow:0 0 0 6px rgba(47,224,196,.12)}
+  .lp-ft{color:var(--tx);font-weight:600;font-size:13px}
+  .lp-fd{color:var(--tx3);font-size:11.5px;margin-top:5px;line-height:1.5}
   .lp-feats{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
   .lp-chip{font-size:11px;color:var(--tx2);border:1px solid var(--border);border-radius:980px;padding:5px 11px;background:rgba(255,255,255,.03)}
-  .lp-trust{display:grid;grid-template-columns:repeat(2,auto);justify-content:center;gap:12px 56px;margin:0 auto 22px;text-align:left}
+  .lp-trust{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:11px 22px;margin:0 0 22px}
   .lp-trust .it{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--tx2);white-space:nowrap}
   .lp-trust .it svg{color:rgb(var(--ui-rgb));flex-shrink:0}
   .lp-note{color:var(--tx3);font-size:11px}
-  .lp-tip{max-width:540px;margin:0 auto 18px;font-size:13px;line-height:1.75;color:var(--tx2);background:rgba(47,224,196,.05);border:1px solid rgba(47,224,196,.14);border-radius:14px;padding:13px 18px}
+  .lp-tip{margin:0 0 18px;font-size:13px;line-height:1.75;color:var(--tx2);background:rgba(47,224,196,.05);border:1px solid rgba(47,224,196,.14);border-radius:14px;padding:13px 18px}
   .lp-tip b{color:var(--tx)}
   .lp-brand{display:inline-flex;align-items:center;gap:9px;margin-bottom:24px}
   .lp-brand .logo{width:26px;height:26px}
@@ -281,10 +288,10 @@
         <div class="lp-eyebrow2">Real-time Speech Captioning</div>
         <h2 class="lp-h1">聞こえた声を、<br><span class="u">読める言葉に。</span></h2>
         <p class="lp-sub">Xスペースや動画の声を、その場で字幕化して翻訳。<br>AIが断片を読みやすい文章にも整えます。</p>
-        <div class="lp-steps">
-          <div class="lp-step"><span class="lp-n">1</span><span>翻訳したいサイトを<b>別タブ</b>で開く</span></div>
-          <div class="lp-step"><span class="lp-n">2</span><span>右上の <b class="ac">▶ START</b> を押す<br><span style="color:var(--tx3);font-size:11px">初回のみ、公開モデル（OpenAI Whisper / Hugging Face）を安全にDL</span></span></div>
-          <div class="lp-step"><span class="lp-n">3</span><span>そのタブを選び <b>「タブの音声も共有」</b>にチェック</span></div>
+        <div class="lp-flow">
+          <div class="lp-fstep"><div class="lp-fnum">1</div><div class="lp-ft">別タブで開く</div><div class="lp-fd">翻訳したいサイトを<br>別のタブで表示</div></div>
+          <div class="lp-fstep"><div class="lp-fnum">2</div><div class="lp-ft">START を押す</div><div class="lp-fd">右上の ▶START<br>(初回のみモデルDL)</div></div>
+          <div class="lp-fstep"><div class="lp-fnum">3</div><div class="lp-ft">音声も共有</div><div class="lp-fd">タブを選び<br>「タブの音声も共有」</div></div>
         </div>
         <div class="lp-trust">
           <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M8.5 1l6 2.5v4c0 3.6-2.4 6.4-6 7.5-3.6-1.1-6-3.9-6-7.5v-4L8.5 1z" stroke="currentColor" stroke-width="1.5"/><path d="M6 8.5l2 2 3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 音声はブラウザ内で処理</span>
