@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space Translate LIVE — Waveform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#04080a;
+    --ink:#eef6f5;
+    --muted:#8fa3a3;
+    --faint:#5f7373;
+    --teal:#2fe0c4;
+    --teal-deep:#10b6a0;
+    --aqua:#38d0ff;
+    --lime:#aef36b;
+    --line:rgba(255,255,255,.08);
+    --glass:rgba(255,255,255,.03);
+    --sans:"Zen Kaku Gothic New","Noto Sans JP",system-ui,sans-serif;
+    --mono:"Space Grotesk",ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.6}
+
+  .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .glow{position:absolute;border-radius:50%;filter:blur(90px)}
+  .g1{width:55vw;height:55vw;left:-15vw;bottom:-25vw;background:radial-gradient(circle,rgba(47,224,196,.28),transparent 62%)}
+  .g2{width:42vw;height:42vw;right:-12vw;top:-18vw;background:radial-gradient(circle,rgba(56,208,255,.22),transparent 62%)}
+  .gridlines{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(120% 100% at 50% 0%,#000 30%,transparent 80%)}
+  .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.045;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  .wrap{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:0 44px}
+
+  nav{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;padding:26px 44px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700}
+  .brand .logo{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;box-shadow:0 4px 18px rgba(47,224,196,.4)}
+  .brand b{font-size:16px;white-space:nowrap}
+  .brand .live{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--teal);font-weight:600;display:inline-flex;align-items:center;gap:5px}
+  .brand .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:pulse 1.6s infinite}
+  @keyframes pulse{50%{opacity:.3}}
+  .nav-links{display:flex;align-items:center;gap:26px;font-size:13.5px;color:var(--muted)}
+  .nav-links a{color:var(--muted);text-decoration:none;transition:.2s}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{padding:8px 16px;border:1px solid rgba(47,224,196,.4);border-radius:8px;color:var(--teal)!important}
+
+  /* hero: split */
+  .hero{position:relative;z-index:2;display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center;padding:70px 44px 40px}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--teal);margin-bottom:26px;text-transform:uppercase}
+  .eyebrow .bars{display:flex;align-items:flex-end;gap:2px;height:14px}
+  .eyebrow .bars i{width:3px;background:var(--teal);border-radius:2px;animation:eq 1s ease-in-out infinite}
+  .eyebrow .bars i:nth-child(1){height:6px}
+  .eyebrow .bars i:nth-child(2){height:12px;animation-delay:.15s}
+  .eyebrow .bars i:nth-child(3){height:8px;animation-delay:.3s}
+  .eyebrow .bars i:nth-child(4){height:14px;animation-delay:.45s}
+  @keyframes eq{50%{transform:scaleY(.35)}}
+  h1{font-weight:900;font-size:clamp(44px,5.4vw,72px);line-height:1.1;letter-spacing:-.01em;margin-bottom:24px}
+  h1 .u{position:relative;white-space:nowrap}
+  h1 .u::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:.16em;background:linear-gradient(90deg,var(--teal),var(--aqua));opacity:.55;border-radius:3px}
+  .lede{font-size:17px;color:var(--muted);max-width:480px;line-height:1.9;margin-bottom:14px}
+  .lede b{color:var(--ink);font-weight:700}
+  .cta-row{display:flex;align-items:center;gap:14px;margin-top:30px}
+  .btn-primary{display:inline-flex;align-items:center;gap:10px;padding:15px 30px;border-radius:10px;font-size:16px;font-weight:700;color:#022;background:linear-gradient(180deg,var(--teal),var(--teal-deep));border:none;box-shadow:0 8px 28px rgba(47,224,196,.4);cursor:pointer;transition:transform .2s,box-shadow .2s}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(47,224,196,.55)}
+  .btn-primary svg path{stroke:#022}
+  .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:14px 22px;border-radius:10px;font-size:15px;color:var(--ink);border:1px solid var(--line);background:var(--glass);cursor:pointer;transition:.2s}
+  .btn-ghost:hover{border-color:var(--line);background:rgba(255,255,255,.06)}
+  .note{font-size:12.5px;color:var(--faint);margin-top:20px}
+
+  /* live feed panel */
+  .feed{position:relative;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,rgba(8,18,18,.85),rgba(4,10,10,.85));backdrop-filter:blur(16px);box-shadow:0 36px 90px rgba(0,0,0,.55);overflow:hidden}
+  .feed-bar{display:flex;align-items:center;gap:8px;padding:13px 18px;border-bottom:1px solid var(--line)}
+  .feed-bar .tag{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--teal);display:inline-flex;align-items:center;gap:7px}
+  .feed-bar .tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:pulse 1.6s infinite}
+  .feed-bar .meta{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:1px}
+  /* SORA announcer avatar */
+  .narrator{display:flex;align-items:center;gap:11px;padding:13px 18px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(47,224,196,.07),transparent)}
+  .narrator .av{position:relative;flex:0 0 auto}
+  .narrator img.av-img{width:46px;height:46px;display:block;position:relative;z-index:1;border-radius:50%;object-fit:cover;object-position:center top;background:rgba(47,224,196,.1);border:1.5px solid rgba(47,224,196,.4)}
+  .narrator .av::after{content:"";position:absolute;right:0;bottom:0;width:11px;height:11px;border-radius:50%;background:var(--teal);border:2px solid #070d0d;box-shadow:0 0 8px var(--teal)}
+  .narrator .who{display:grid;gap:1px}
+  .narrator .who .role{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--teal);text-transform:uppercase}
+  .narrator .who .nm{font-size:14px;font-weight:900}
+  .narrator .who .nm small{font-weight:500;color:var(--muted);font-size:11px;margin-left:5px}
+  .narrator .badge{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:1px;display:flex;align-items:center;gap:6px}
+  .narrator .badge .bars{display:flex;align-items:flex-end;gap:2px;height:12px}
+  .narrator .badge .bars i{width:2.5px;background:var(--teal);border-radius:2px;animation:eq 1s ease-in-out infinite}
+  .narrator .badge .bars i:nth-child(2){animation-delay:.15s}
+  .narrator .badge .bars i:nth-child(3){animation-delay:.3s}
+  /* big live waveform */
+  .bigwave{display:flex;align-items:center;gap:3px;height:62px;padding:16px 18px 6px}
+  .bigwave i{flex:1;background:linear-gradient(var(--teal),var(--aqua));border-radius:3px;opacity:.9;animation:wv 1.1s ease-in-out infinite}
+  @keyframes wv{0%,100%{transform:scaleY(.2)}50%{transform:scaleY(1)}}
+  .feed-list{padding:8px 18px 18px;display:grid;gap:2px}
+  .line{padding:11px 0;border-top:1px solid rgba(255,255,255,.05);opacity:.4;transition:opacity .4s}
+  .line:first-child{border-top:none}
+  .line.active{opacity:1}
+  .line .t{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.5px}
+  .line .src{font-size:12.5px;color:var(--faint);margin:2px 0 3px}
+  .line .dst{font-size:16px;font-weight:700;line-height:1.5}
+  .line.active .dst{color:var(--ink)}
+  .line .cur{display:inline-block;width:2px;height:1em;background:var(--teal);vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .feed-foot{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line)}
+  .chip{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--glass);border:1px solid var(--line);border-radius:7px;padding:6px 11px;display:inline-flex;align-items:center;gap:6px}
+  .chip.on{color:var(--teal);border-color:rgba(47,224,196,.35)}
+
+  /* trust strip */
+  .strip{position:relative;z-index:2;display:flex;flex-wrap:wrap;gap:14px 34px;justify-content:center;padding:34px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:40px}
+  .strip .it{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--muted)}
+  .strip .it svg{color:var(--teal)}
+
+  section.block{position:relative;z-index:2;padding:92px 0 0}
+  .sec-head{margin-bottom:42px}
+  .sec-head .kicker{font-family:var(--mono);font-size:12px;letter-spacing:2.5px;color:var(--teal);text-transform:uppercase;margin-bottom:14px}
+  .sec-head h2{font-size:32px;font-weight:900;letter-spacing:-.01em;max-width:620px}
+
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .card{background:#070d0d;padding:30px 26px;transition:background .25s}
+  .card:hover{background:#0a1414}
+  .card .ico{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;background:rgba(47,224,196,.1);border:1px solid rgba(47,224,196,.2);color:var(--teal);margin-bottom:20px}
+  .card h3{font-size:18px;font-weight:700;margin-bottom:9px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.75}
+  .card .free{display:inline-block;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--lime);background:rgba(174,243,107,.08);border:1px solid rgba(174,243,107,.22);padding:3px 9px;border-radius:6px}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:18px}
+  .step{border:1px solid var(--line);background:var(--glass);border-radius:14px;padding:26px 24px;position:relative}
+  .step .num{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--teal);letter-spacing:2px;margin-bottom:14px}
+  .step h4{font-size:16px;font-weight:700;margin-bottom:7px}
+  .step p{font-size:13.5px;color:var(--muted);line-height:1.7}
+  .step .kbd{font-family:var(--mono);font-size:12px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--teal)}
+
+  details{max-width:900px;margin:60px 0 0;border:1px solid var(--line);background:var(--glass);border-radius:14px;overflow:hidden}
+  summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:22px 26px;font-size:16px;font-weight:700}
+  summary::-webkit-details-marker{display:none}
+  summary .chev{transition:transform .25s;color:var(--muted)}
+  details[open] summary .chev{transform:rotate(90deg)}
+  .acc-body{padding:0 26px 24px;color:var(--muted);font-size:14px;line-height:1.85;display:grid;gap:10px}
+  .acc-body .row{display:flex;gap:10px;align-items:flex-start}
+  .acc-body .row svg{flex:0 0 auto;margin-top:3px;color:var(--teal)}
+
+  /* final CTA */
+  .final{position:relative;z-index:2;margin-top:96px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(135deg,rgba(47,224,196,.12),rgba(56,208,255,.08));padding:60px 48px;text-align:center;overflow:hidden}
+  .final h2{font-size:38px;font-weight:900;margin-bottom:14px;letter-spacing:-.01em}
+  .final p{color:var(--muted);font-size:16px;margin-bottom:28px}
+
+  footer{position:relative;z-index:2;text-align:center;padding:60px 0 50px;color:var(--faint);font-size:13px}
+</style>
+</head>
+<body>
+  <div class="bg">
+    <div class="glow g1"></div>
+    <div class="glow g2"></div>
+    <div class="gridlines"></div>
+  </div>
+  <div class="grain"></div>
+
+  <nav>
+    <div class="brand">
+      <span class="logo"><svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#2fe0c4"/><stop offset="1" stop-color="#38d0ff"/></linearGradient></defs><rect width="40" height="40" rx="11" fill="url(#lg)"/><g fill="#fff"><rect x="9.6" y="17" width="2.8" height="6" rx="1.4"/><rect x="15" y="12" width="2.8" height="16" rx="1.4"/><rect x="20.4" y="15" width="2.8" height="10" rx="1.4"/><rect x="25.8" y="10.5" width="2.8" height="19" rx="1.4"/></g></svg></span>
+      <b>Space Translate</b><span class="live">LIVE</span>
+    </div>
+    <div class="nav-links">
+      <a href="#features">機能</a>
+      <a href="#how">使い方</a>
+      <a href="app.html" class="nav-cta">始める</a>
+    </div>
+  </nav>
+
+  <header class="hero wrap">
+    <div>
+      <div class="eyebrow"><span class="bars"><i></i><i></i><i></i><i></i></span> Real-time Speech Captioning</div>
+      <h1>聞こえた声を、<br><span class="u">読める言葉に。</span></h1>
+      <p class="lede">Xスペースや動画の音声を、その場で字幕化して翻訳。さらにAIが「読みやすい文章」に整えます。</p>
+      <p class="lede"><b>インストール不要、ブラウザだけ。</b></p>
+      <div class="cta-row">
+        <button class="btn-primary" onclick="location.href='app.html'">始める <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9h9M9 5l4 4-4 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="btn-ghost" onclick="location.href='app.html'"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M5 3l8 5-8 5V3z" fill="currentColor"/></svg> デモ</button>
+      </div>
+      <p class="note">推奨: Chrome / Edge（デスクトップ）・Mac はタブ音声のみ</p>
+    </div>
+
+    <div class="feed">
+      <div class="feed-bar">
+        <span class="tag">LIVE</span>
+        <span class="meta">EN → JA · 0.9s delay</span>
+      </div>
+      <div class="bigwave" id="wave"></div>
+      <div class="feed-list" id="feed">
+        <div class="line"><div class="t">00:11</div><div class="src">"...let me share my screen real quick."</div><div class="dst">画面をすぐ共有しますね。</div></div>
+        <div class="line"><div class="t">00:18</div><div class="src">"the latency here is basically zero."</div><div class="dst">ここでの遅延はほぼゼロです。</div></div>
+        <div class="line active"><div class="t">00:24</div><div class="src">"so the whole point of this protocol..."</div><div class="dst" id="typed">このプロトコルの要点は<span class="cur"></span></div></div>
+      </div>
+      <div class="feed-foot">
+        <span class="chip on">● 字幕</span>
+        <span class="chip">翻訳 JA</span>
+        <span class="chip">整える</span>
+        <span class="chip">要約</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="strip wrap">
+    <div class="it"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M8.5 1l6 2.5v4c0 3.6-2.4 6.4-6 7.5-3.6-1.1-6-3.9-6-7.5v-4L8.5 1z" stroke="currentColor" stroke-width="1.5"/><path d="M6 8.5l2 2 3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 音声はブラウザ内で処理</div>
+    <div class="it"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> APIキー登録なし</div>
+    <div class="it"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> 文字起こし・翻訳は無料</div>
+    <div class="it"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> インストール不要</div>
+  </div>
+
+  <section class="block wrap" id="features">
+    <div class="sec-head">
+      <div class="kicker">Features</div>
+      <h2>聞き逃さない。だから、ついていける。</h2>
+    </div>
+    <div class="features">
+      <div class="card">
+        <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 13v-1a8 8 0 0116 0v1M4 13a2 2 0 002 2 1 1 0 001-1v-3a1 1 0 00-1-1H6a2 2 0 00-2 2zm16 0a2 2 0 01-2 2 1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 012 2zm-2 2v1a3 3 0 01-3 3h-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <h3>システム音声をそのまま翻訳</h3>
+        <p>タブを共有するだけ。ヘッドフォンを使っていてもそのまま字幕化できます。</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 4h9l5 5v11a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 4v5h5M8 13h6M8 17h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <h3>文字起こし・翻訳は無料</h3>
+        <p>ブラウザ内のWhisper＋無料翻訳で処理。APIキーの登録は要りません。</p>
+        <span class="free">API KEY 不要</span>
+      </div>
+      <div class="card">
+        <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M9 3h6v3H9zM9 11h6M9 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <h3>整文／要約は必要な時だけ</h3>
+        <p>無料APIで整形、またはコピーして普段のAIに要約を任せることもできます。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block wrap" id="how">
+    <div class="sec-head">
+      <div class="kicker">How it works</div>
+      <h2>3ステップで、字幕が流れ出す。</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">STEP 01</div><h4>始める</h4><p>「始める」で本体へ移動します。</p></div>
+      <div class="step"><div class="num">STEP 02</div><h4>タブを共有</h4><p><span class="kbd">START</span> → タブを選び「音声も共有」にチェック。</p></div>
+      <div class="step"><div class="num">STEP 03</div><h4>字幕＋整形</h4><p>字幕が自動で流れ、「整える / 要約」でまとめられます。</p></div>
+    </div>
+
+    <details>
+      <summary>利用にあたって（仕組み・使うもの）<span class="chev"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6 4l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+      <div class="acc-body">
+        <div class="row"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>音声認識はブラウザ内のWhisperで実行され、音声データは外部に送信されません。</span></div>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>翻訳は無料の翻訳エンジンを利用。整形・要約のみ任意でAPIを使います。</span></div>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Chrome / Edge のデスクトップ版を推奨。Mac ではタブ音声のみ取得できます。</span></div>
+      </div>
+    </details>
+
+    <div class="final">
+      <h2>その場の会話に、ついていこう。</h2>
+      <p>ブラウザを開いて「始める」を押すだけ。今すぐ字幕が流れ出します。</p>
+      <button class="btn-primary" style="margin:0 auto" onclick="location.href='app.html'">始める <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9h9M9 5l4 4-4 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+  </section>
+
+  <footer>聞こえた声を、読める言葉に。 — © 2026 Space Translate</footer>
+
+<script>
+  const wave=document.getElementById('wave');
+  for(let i=0;i<56;i++){const b=document.createElement('i');b.style.animationDelay=(i*0.04)+'s';b.style.animationDuration=(0.7+Math.random()*0.9)+'s';wave.appendChild(b);}
+  const phrases=["このプロトコルの要点は、誰でも安全につながれること。","つまり目的は「読みやすさ」にあります。","字幕はそのまま日本語で流れます。"];
+  const el=document.getElementById('typed');
+  let pi=0,ci=0,del=false;
+  function tick(){const p=phrases[pi];el.innerHTML=p.slice(0,ci)+'<span class="cur"></span>';
+    if(!del){ci++;if(ci>p.length){del=true;setTimeout(tick,1600);return;}}
+    else{ci--;if(ci<0){del=false;pi=(pi+1)%phrases.length;ci=0;}}
+    setTimeout(tick,del?28:65);}
+  tick();
+</script>
+</body>
+</html>

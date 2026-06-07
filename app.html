@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X Space LIVE 翻訳 + 整文 (Web版プロトタイプ)</title>
+<!--
+  CIGNAL OS の LIVE翻訳パネルを「単体ウェブページ」に移植したプロトタイプ。
+  左=共有タブ(Xスペース等)のプレビュー / 右上=字幕(原文|訳) / 右下=整文・要約
+
+  仕組み:
+    1. 画面共有(getDisplayMedia)で「タブ＋タブの音声」を取得 → 左に映像、音をWhisperへ
+    2. Web Audio で無音区切りVAD → 16kHz化 → ブラウザ内Whisper(Transformers.js)で文字起こし(キー不要)
+    3. 翻訳 & 整文/要約 は選択したAIプロバイダー(Gemini/Groq/OpenRouter/Claude/Grok)で実行。
+       キー無しでも文字起こしまでは動く。CORS可否はプロバイダー次第(Gemini/OpenRouter/Claudeは可)
+
+  注意: getDisplayMedia は「安全なコンテキスト」が必要。file:// では不可な場合があるので
+        フォルダで  python -m http.server 8000  を実行し
+        http://localhost:8000/ を開いてください（このファイル＝index.html）。
+-->
+<style>
+  :root{
+    /* シグナル(ティール)パレット — landing.html と統一 */
+    --bg:#04080a; --bg2:#0a1414; --panel:#0a1414; --border:rgba(255,255,255,.08);
+    --tx:#eef6f5; --tx2:#8fa3a3; --tx3:#5f7373; --ui-rgb:47,224,196;
+    --mono:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Helvetica,"Hiragino Kaku Gothic ProN",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--mono);overflow:hidden}
+  #app{display:flex;height:100vh;width:100vw}
+
+  /* 左: 共有タブのプレビュー */
+  #left{position:relative;overflow:hidden;flex:1.1;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--border);background:#04080a}
+  .left-bg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  .left-bg .glow{position:absolute;width:72%;height:60%;left:-14%;bottom:-18%;border-radius:50%;filter:blur(82px);background:radial-gradient(circle,rgba(47,224,196,.20),transparent 62%)}
+  .left-bg .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:60px 60px;-webkit-mask-image:radial-gradient(120% 90% at 50% 0%,#000 30%,transparent 80%);mask-image:radial-gradient(120% 90% at 50% 0%,#000 30%,transparent 80%)}
+  #leftHead{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+  .back{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;border:1px solid var(--border);color:var(--tx2);text-decoration:none;font-size:14px;flex-shrink:0;transition:.15s}
+  .back:hover{border-color:rgb(var(--ui-rgb));color:rgb(var(--ui-rgb))}
+  #leftHead b{font-size:11px;color:var(--tx2);font-weight:700}
+  #shareBtn{margin-left:auto;border:none;border-radius:5px;background:rgb(var(--ui-rgb));color:#fff;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:var(--mono)}
+  #vidWrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;overflow:hidden}
+  #vid{max-width:100%;max-height:100%;background:#000}
+  /* 左ペイン: 共有前のランディング (共有中は video に切替) */
+  #vidHint{max-width:480px;padding:28px 24px;color:var(--tx2);text-align:center}
+  .lp-eyebrow{display:inline-flex;align-items:center;gap:7px;color:rgb(var(--ui-rgb));font-size:12px;font-weight:700;letter-spacing:1px;font-family:var(--mono);margin-bottom:16px}
+  .lp-eyebrow .logo{width:22px;height:22px}
+  .lp-h1{font-size:clamp(30px,4vw,48px);font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--tx);margin:0 0 16px}
+  .lp-h1 .u{position:relative;white-space:nowrap}
+  .lp-h1 .u::after{content:"";position:absolute;left:0;right:0;bottom:.05em;height:.14em;background:linear-gradient(90deg,rgb(var(--ui-rgb)),#38d0ff);opacity:.5;border-radius:3px}
+  .lp-sub{color:var(--tx2);font-size:14px;line-height:1.7;margin:0 0 26px}
+  .lp-steps{display:grid;gap:9px;text-align:left;max-width:360px;margin:0 auto 22px}
+  .lp-step{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--tx2);font-size:13px}
+  .lp-step b{color:var(--tx)} .lp-step b.ac{color:rgb(var(--ui-rgb))}
+  .lp-n{width:24px;height:24px;flex-shrink:0;border-radius:50%;background:rgb(var(--ui-rgb));color:#04080a;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .lp-feats{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+  .lp-chip{font-size:11px;color:var(--tx2);border:1px solid var(--border);border-radius:980px;padding:5px 11px;background:rgba(255,255,255,.03)}
+  .lp-note{color:var(--tx3);font-size:11px}
+  .lp-brand{display:inline-flex;align-items:center;gap:9px;margin-bottom:24px}
+  .lp-brand .logo{width:26px;height:26px}
+  .lp-brand b{font-size:16px;font-weight:700;letter-spacing:.01em;color:var(--tx)}
+  .lp-brand .live{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgb(var(--ui-rgb));display:inline-flex;align-items:center;gap:5px}
+  .lp-brand .live::before{content:"";width:6px;height:6px;border-radius:50%;background:rgb(var(--ui-rgb));box-shadow:0 0 8px rgb(var(--ui-rgb));animation:lpulse 1.6s infinite}
+  @keyframes lpulse{50%{opacity:.3}}
+  .lp-eyebrow2{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--tx3);text-transform:uppercase;margin-bottom:14px}
+
+  /* 右: 翻訳 + 整文 */
+  #right{flex:1;min-width:0;display:flex;flex-direction:column}
+  #rHead{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+  .dot{width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0}
+  .dot.on{background:rgb(var(--ui-rgb));box-shadow:0 0 8px rgb(var(--ui-rgb))}
+  #rHead .sp{flex:1}
+  select,.btn{font-size:13px;background:var(--bg);color:var(--tx);border:1px solid var(--border);border-radius:5px;padding:6px 11px;font-family:var(--mono);cursor:pointer}
+  .btn:hover{border-color:rgb(var(--ui-rgb))}
+  .btn.primary{border:none;background:rgb(var(--ui-rgb));color:#fff;font-weight:700}
+  .btn.on{border-color:rgb(var(--ui-rgb));background:rgba(var(--ui-rgb),.3);color:#fff;font-weight:700}
+  .lbl{font-size:11px;color:var(--tx3);white-space:nowrap}
+  .cpy{border:none;background:transparent;color:var(--tx3);cursor:pointer;font-size:12px;opacity:.6;padding:0 2px}
+  .cpy:hover{opacity:1}
+
+  /* 上段 字幕 (1カラム ライブフィード — landing と統一) */
+  #subWrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+  #feedMeta{display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.22);flex-shrink:0}
+  #feedMeta .ch{flex:1;font-family:var(--mono);font-size:11px;font-weight:700}
+  #feedMeta .ch.l{color:var(--tx3)}
+  #feedMeta .ch.r{color:rgb(var(--ui-rgb))}
+  .bigwave{display:none;align-items:center;gap:2px;height:42px;padding:8px 14px 4px;flex-shrink:0}
+  .bigwave i{flex:1;background:linear-gradient(rgb(var(--ui-rgb)),#38d0ff);border-radius:3px;opacity:.9;transform-origin:bottom;animation:wv 1.1s ease-in-out infinite}
+  @keyframes wv{0%,100%{transform:scaleY(.2)}50%{transform:scaleY(1)}}
+  .feed-foot{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;background:rgba(0,0,0,.15)}
+  .chip{font-family:var(--mono);font-size:12px;color:var(--tx2);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:6px 12px;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+  .chip.act{cursor:pointer}
+  .chip.act:hover{border-color:rgb(var(--ui-rgb));color:var(--tx)}
+  .chip.on{color:rgb(var(--ui-rgb));border-color:rgba(var(--ui-rgb),.4);background:rgba(var(--ui-rgb),.08)}
+  #feed{flex:1;overflow-y:auto;min-height:0;padding:2px 0}
+  .line{padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.05);opacity:.5;transition:opacity .3s}
+  .line.active{opacity:1}
+  .line .t{font-family:var(--mono);font-size:10px;color:var(--tx3);letter-spacing:.5px;margin-bottom:5px}
+  .line .cols{display:flex;gap:12px}
+  .line .src{flex:1;font-size:13px;color:var(--tx3);line-height:1.55}
+  .line .dst{flex:1;font-size:14px;font-weight:600;color:var(--tx);line-height:1.55;border-left:1px solid var(--border);padding-left:12px}
+  .cur{display:inline-block;width:2px;height:1em;background:rgb(var(--ui-rgb));vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  #interim{padding:6px 14px;font-size:11px;color:var(--tx3);background:rgba(0,0,0,.22);border-top:1px solid var(--border);min-height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-family:var(--mono)}
+
+  /* 下段 整文/要約 */
+  #refine{display:flex;flex-direction:column;min-height:0;border-top:1px solid var(--border);background:rgba(0,0,0,.15)}
+  #refDrag{height:7px;cursor:row-resize;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  #refDrag div{width:30px;height:2px;border-radius:2px;background:var(--border)}
+  #refHead{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(0,0,0,.15);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+  #refHead .t{font-size:14px;font-weight:700;color:var(--tx2);cursor:pointer}
+  #refHead .sp{flex:1}
+  #refBody{flex:1;min-height:0;overflow-y:auto;padding:11px 13px;font-size:14px;line-height:1.8;white-space:pre-wrap;color:var(--tx)}
+  .muted{color:var(--tx3);font-size:10px}
+
+  /* キー設定バー */
+  #keyBar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#0a0d1c;border-bottom:1px solid var(--border);font-size:12px;color:var(--tx3);flex-shrink:0}
+  #keyBar input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--tx);border-radius:5px;padding:6px 10px;font-family:var(--mono);font-size:12px}
+  #keyBar a{color:rgb(var(--ui-rgb));font-size:12px;white-space:nowrap}
+
+  /* ===== スタート画面 (Apple風) ===== */
+  #intro{position:fixed;inset:0;z-index:1000;overflow:auto;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;
+    background:#000;
+    background-image:radial-gradient(85% 55% at 50% -8%, rgba(80,110,255,.30), transparent 62%),
+                     radial-gradient(55% 40% at 85% 6%, rgba(180,90,255,.16), transparent 60%);
+    display:flex;align-items:flex-start;justify-content:center;padding:4vh 22px 4vh}
+  #intro *{font-family:inherit}
+  /* 背景アート: 漂うオーロラ (Apple風・CSSのみ) */
+  #bgart{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+  .orb{position:absolute;border-radius:50%;filter:blur(72px);opacity:.5;will-change:transform}
+  .orb.o1{width:540px;height:540px;background:radial-gradient(circle,#0a84ff,transparent 70%);top:-170px;left:-120px;animation:drift1 19s ease-in-out infinite}
+  .orb.o2{width:500px;height:500px;background:radial-gradient(circle,#7d5cff,transparent 70%);top:-130px;right:-150px;animation:drift2 23s ease-in-out infinite}
+  .orb.o3{width:460px;height:460px;background:radial-gradient(circle,#00c2ff,transparent 72%);top:34%;left:42%;opacity:.3;animation:drift3 27s ease-in-out infinite}
+  @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(90px,70px) scale(1.15)}}
+  @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-80px,100px) scale(1.1)}}
+  @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-70px,-60px) scale(1.2)}}
+  @media(prefers-reduced-motion:reduce){.orb{animation:none}}
+  #introCard{position:relative;z-index:1;zoom:.8;max-width:840px;width:100%;text-align:center;background:transparent;border:none;box-shadow:none;padding:0}
+  .logo{display:block;flex-shrink:0}
+  #introEyebrow{display:inline-flex;align-items:center;gap:10px;margin-bottom:16px}
+  #introEyebrow .logo{width:30px;height:30px}
+  #introEyebrow .wm{font-size:17px;font-weight:600;color:#f5f5f7;letter-spacing:.005em}
+  #introEyebrow .wm i{color:#86868b;font-style:normal;font-weight:500}
+  .brand{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--tx);font-size:13px}
+  .brand .logo{width:22px;height:22px}
+  .brand i{color:var(--tx3);font-style:normal;font-weight:500}
+  #introCard h1{margin:0;font-size:clamp(42px,6.6vw,76px);font-weight:600;letter-spacing:-.03em;line-height:1.03;
+    background:linear-gradient(180deg,#fff 0%,#c7c7cf 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  #introCard .tag{color:#a1a1a6;font-size:clamp(17px,2.3vw,21px);font-weight:400;line-height:1.55;margin:18px auto 28px;max-width:600px}
+  #introCard .tag b{color:#f5f5f7;font-weight:500}
+  /* CTA: ヒーロー直下 (スクロール不要で見える) */
+  #introStart{display:inline-block;width:auto;border:none;border-radius:980px;background:#0071e3;color:#fff;
+    font-size:17px;font-weight:500;padding:14px 44px;cursor:pointer;transition:transform .15s,background .15s,box-shadow .15s;
+    box-shadow:0 6px 26px rgba(0,113,227,.42)}
+  #introStart:hover{background:#0a84ff;transform:translateY(-1px);box-shadow:0 8px 32px rgba(10,132,255,.5)}
+  .note{margin-top:14px;color:#6e6e73;font-size:12px;line-height:1.6;text-align:center}
+  .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:46px 0 0}
+  .feat{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:22px;padding:24px 18px;
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+  .feat .ic{font-size:30px;line-height:1}
+  .feat .tx b{color:#f5f5f7;font-size:15px;font-weight:600;display:block}
+  .feat .tx div{color:#a1a1a6;font-size:12.5px;margin-top:6px;line-height:1.55}
+  /* 流れ ①→②→③ (ロードマップ: 線＋丸) */
+  .flow{position:relative;display:flex;justify-content:space-between;gap:0;margin:50px auto 4px;max-width:660px}
+  .flow::before{content:"";position:absolute;top:21px;left:16%;right:16%;height:2px;
+    background:linear-gradient(90deg,#0a84ff,#7d5cff);opacity:.55;z-index:0}
+  .fstep{position:relative;z-index:1;flex:1;text-align:center;background:none;border:none;padding:0}
+  .fnum{width:42px;height:42px;border-radius:50%;margin:0 auto 13px;display:flex;align-items:center;justify-content:center;
+    background:#0071e3;color:#fff;font-weight:600;font-size:17px;box-shadow:0 0 0 6px rgba(0,113,227,.13)}
+  .ft{color:#f5f5f7;font-weight:600;font-size:14px}
+  .fd{color:#a1a1a6;font-size:12px;margin-top:6px;line-height:1.5;max-width:180px;margin-left:auto;margin-right:auto}
+  /* 利用にあたって (開閉) */
+  .disc{margin-top:18px;text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden}
+  .disc summary{list-style:none;cursor:pointer;padding:16px 20px;color:#f5f5f7;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+  .disc summary::-webkit-details-marker{display:none}
+  .disc summary::after{content:"\203A";font-size:22px;color:#86868b;transition:transform .25s;line-height:1}
+  .disc[open] summary::after{transform:rotate(90deg)}
+  .disc ul{margin:0;padding:0 22px 20px 40px}
+  .disc li{color:#a1a1a6;font-size:13px;line-height:1.7;margin-bottom:10px}
+  .disc b{color:#e8e8ed;font-weight:600}
+  .disc code{background:rgba(41,151,255,.16);color:#e8e8ed;padding:1px 6px;border-radius:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+  @media(max-width:640px){ .feats{grid-template-columns:1fr} .flow{flex-direction:column;gap:24px;max-width:300px} .flow::before{display:none} }
+</style>
+</head>
+<body>
+
+<!-- ロゴのグラデーション定義 (全ロゴで共有) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="sgrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#2fe0c4"/><stop offset="1" stop-color="#38d0ff"/>
+  </linearGradient>
+</defs></svg>
+
+<!-- ===== スタート画面: landing(index.html) を正面にしたため既定で非表示。ツールへ直行 ===== -->
+<div id="intro" style="display:none">
+  <div id="bgart" aria-hidden="true"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span></div>
+  <div id="introCard">
+    <div id="introEyebrow">
+      <svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="url(#sgrad)"/><g fill="#fff"><rect x="9.6" y="17" width="2.8" height="6" rx="1.4"/><rect x="15" y="12" width="2.8" height="16" rx="1.4"/><rect x="20.4" y="15" width="2.8" height="10" rx="1.4"/><rect x="25.8" y="10.5" width="2.8" height="19" rx="1.4"/></g></svg>
+      <span class="wm">Space&nbsp;Translate <i>LIVE</i></span>
+    </div>
+    <h1>聞こえた声を、<br>読める言葉に。</h1>
+    <div class="tag">Xスペースや動画の音声を、その場で字幕化して翻訳。さらにAIが「読みやすい文章」に整えます。<br><b>インストール不要、ブラウザだけ。</b></div>
+
+    <button id="introStart">始める</button>
+    <div class="note">推奨: Chrome / Edge（デスクトップ）・Mac はタブ音声のみ</div>
+
+    <div class="feats">
+      <div class="feat"><div class="ic">🎧</div><div class="tx"><b>システム音声をそのまま翻訳</b><div>タブを共有するだけ。ヘッドフォン使用中でもOK</div></div></div>
+      <div class="feat"><div class="ic">📝</div><div class="tx"><b>文字起こし・翻訳は無料</b><div>ブラウザ内Whisper＋無料翻訳。APIキー不要</div></div></div>
+      <div class="feat"><div class="ic">📋</div><div class="tx"><b>整文／要約（必要な時だけ）</b><div>無料APIで整形、または 📋 コピーして普段のAIで要約</div></div></div>
+    </div>
+
+    <div class="flow">
+      <div class="fstep"><div class="fnum">1</div><div class="ft">始める</div><div class="fd">「始める」で本体へ</div></div>
+      <div class="fstep"><div class="fnum">2</div><div class="ft">タブを共有</div><div class="fd">▶START → タブを選び「音声も共有」にチェック</div></div>
+      <div class="fstep"><div class="fnum">3</div><div class="ft">字幕＋整形</div><div class="fd">字幕が自動で流れ、「整える / 要約」でまとめ</div></div>
+    </div>
+
+    <details class="disc">
+      <summary>利用にあたって（仕組み・使うもの）</summary>
+      <ul>
+        <li><b>文字起こし</b>：ブラウザ内 Whisper（Transformers.js / モデル <code>Xenova/whisper-base</code> 約150MB）。<b>初回だけ自動ダウンロード（確認あり）</b>、以後はブラウザにキャッシュされ再DLなし。音声は<b>この端末内だけで処理</b>＝外部に送信されません。</li>
+        <li><b>翻訳</b>：無料の <b>Lingva Translate</b>（Google翻訳のプロキシ）を使用。混雑・不通時は <b>MyMemory</b> へ自動フォールバック。APIキー不要。※翻訳のため、起こした<b>テキストは外部の翻訳サーバーへ送信</b>されます。</li>
+        <li><b>整文／要約</b>：<b>必要な時だけ</b>。①無料APIキー（Gemini / Groq / OpenRouter / Claude / Grok）でアプリ内整形・要約、または②字幕を <b>📋 コピーして普段使いのAI（ChatGPT等）に貼り付けて</b>要約。キーが要るのは①だけ。</li>
+        <li><b>動作環境</b>：Chrome / Edge 推奨（デスクトップ）。Mac はシステム全体音は取得不可で、タブ音声のみ対応。</li>
+      </ul>
+    </details>
+  </div>
+</div>
+
+<!-- 始める: モジュール(import)失敗に影響されないよう独立スクリプトで配線 -->
+<script>document.getElementById('introStart').addEventListener('click',function(){document.getElementById('intro').style.display='none';});</script>
+
+<div id="app">
+  <!-- 左: 共有タブ -->
+  <div id="left">
+    <div class="left-bg" aria-hidden="true"><span class="glow"></span><span class="grid"></span></div>
+    <div id="vidWrap">
+      <div id="vidHint">
+        <div class="lp-brand">
+          <svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="url(#sgrad)"/><g fill="#fff"><rect x="9.6" y="17" width="2.8" height="6" rx="1.4"/><rect x="15" y="12" width="2.8" height="16" rx="1.4"/><rect x="20.4" y="15" width="2.8" height="10" rx="1.4"/><rect x="25.8" y="10.5" width="2.8" height="19" rx="1.4"/></g></svg>
+          <b>Space Translate</b><span class="live">LIVE</span>
+        </div>
+        <div class="lp-eyebrow2">Real-time Speech Captioning</div>
+        <h2 class="lp-h1">聞こえた声を、<br><span class="u">読める言葉に。</span></h2>
+        <p class="lp-sub">Xスペースや動画の声を、その場で字幕化して翻訳。<br>AIが断片を読みやすい文章にも整えます。</p>
+        <div class="lp-steps">
+          <div class="lp-step"><span class="lp-n">1</span><span>翻訳したいサイトを<b>別タブ</b>で開く</span></div>
+          <div class="lp-step"><span class="lp-n">2</span><span>右上の <b class="ac">▶ START</b> を押す（初回はモデルDL）</span></div>
+          <div class="lp-step"><span class="lp-n">3</span><span>そのタブを選び <b>「タブの音声も共有」</b>にチェック</span></div>
+        </div>
+        <div class="lp-feats">
+          <span class="lp-chip">🎧 ヘッドフォンOK</span>
+          <span class="lp-chip">🆓 文字起こし・翻訳は無料</span>
+          <span class="lp-chip">📋 整える / 要約</span>
+        </div>
+        <div class="lp-note">Chrome / Edge 推奨・Mac はタブ音声のみ</div>
+      </div>
+      <video id="vid" autoplay muted playsinline style="display:none"></video>
+    </div>
+  </div>
+
+  <!-- 右: 翻訳 + 整文 -->
+  <div id="right">
+    <div id="rHead">
+      <span class="dot" id="liveDot"></span>
+      <b style="font-size:12px;color:var(--tx2)">LIVE</b>
+      <span class="sp"></span>
+      <select id="fromSel" title="音声(原文)の言語">
+        <option value="auto">自動判定</option><option value="en" selected>英語 EN</option><option value="ja">日本語 JP</option>
+        <option value="ko">韓国語 KR</option><option value="zh">中国語 CN</option><option value="es">スペイン語</option><option value="fr">フランス語</option><option value="de">ドイツ語</option>
+      </select>
+      <button class="btn" id="swapBtn" title="言語を入れ替え" style="padding:6px 10px">⇄</button>
+      <select id="toSel" title="翻訳先の言語">
+        <option value="ja" selected>日本語 JP</option><option value="en">英語 EN</option><option value="ko">韓国語 KR</option>
+        <option value="zh">中国語 CN</option><option value="es">スペイン語</option><option value="fr">フランス語</option><option value="de">ドイツ語</option>
+      </select>
+      <button class="btn primary" id="startBtn" style="margin-left:4px">▶ START</button>
+    </div>
+
+    <div id="subWrap">
+      <div id="feedMeta">
+        <span class="ch l" id="chL">English</span>
+        <span class="ch r" id="chR">日本語</span>
+        <button class="cpy" id="cpyAll" title="訳をすべてコピー">📋</button>
+      </div>
+      <div class="bigwave" id="wave" aria-hidden="true"></div>
+      <div id="feed"></div>
+      <div class="feed-foot">
+        <span class="chip on">● 字幕</span>
+        <span class="chip" id="chTrans">翻訳 JA</span>
+        <span class="chip act" id="chShori" title="読みやすい文章に整える">整える</span>
+        <span class="chip act" id="chYoyaku" title="箇条書きで要約">要約</span>
+        <span class="chip act" id="chAuto" title="一定量たまったら自動生成">AUTO</span>
+      </div>
+    </div>
+    <div id="interim">準備中… モデルは初回のみ自動ダウンロード</div>
+
+    <!-- 下段 整文/要約 -->
+    <div id="refine">
+      <div id="refDrag"><div></div></div>
+      <div id="refHead">
+        <span class="t" id="refTitle">📋 整形結果</span>
+        <span class="sp"></span>
+        <button class="cpy" id="cpyRefine" title="結果をコピー">📋</button>
+        <button class="btn" id="refCol" title="下段の開閉" style="border:none;background:transparent;color:var(--tx3);font-size:15px">▾</button>
+      </div>
+      <div id="keyBar">
+        <span>AI(整形/要約のみ):</span>
+        <select id="provSel">
+          <option value="gemini">Gemini</option>
+          <option value="groq">Groq</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="claude">Claude</option>
+          <option value="grok">Grok</option>
+        </select>
+        <input id="apiKey" type="password" placeholder="APIキー（要約・整文のみ使用／文字起こし・翻訳は不要）" style="flex:1">
+        <a id="keyLink" href="#" target="_blank" rel="noopener">キー取得</a>
+      </div>
+      <div id="refBody"><span class="muted">必要な時だけ。「整える/要約」かAUTOで生成（整文＝読みやすい文章 / 要約＝箇条書き）。AIキーが無くても、上の 📋 で字幕をコピーして普段使いのAIに貼り付けて要約してもOK。</span></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers';
+
+// ===== 設定 =====
+env.allowLocalModels = false;                 // CDN からモデル取得
+const WHISPER_MODEL = 'Xenova/whisper-base';  // 速度重視なら whisper-tiny
+const AUTO_THRESHOLD = 16;
+const LANG_FULL = { en:'english', ja:'japanese', ko:'korean', zh:'chinese', es:'spanish', fr:'french', de:'german' };
+const LANG_NAME = { ja:'日本語', en:'English', ko:'한국어', zh:'中文', es:'Español', fr:'Français', de:'Deutsch' };
+
+// ===== DOM =====
+const $ = s => document.querySelector(s);
+const vid=$('#vid'), vidHint=$('#vidHint'), startBtn=$('#startBtn'), swapBtn=$('#swapBtn');
+const feed=$('#feed'), interim=$('#interim'), liveDot=$('#liveDot');
+const chL=$('#chL'), chR=$('#chR'), cpyAll=$('#cpyAll'), wave=$('#wave');
+const chTrans=$('#chTrans'), chShori=$('#chShori'), chYoyaku=$('#chYoyaku'), chAuto=$('#chAuto');
+// ライブ波形バー生成 + 経過時間タイムスタンプ
+for(let i=0;i<48;i++){ const b=document.createElement('i'); b.style.animationDelay=(i*0.04).toFixed(2)+'s'; b.style.animationDuration=(0.7+(i%5)*0.12).toFixed(2)+'s'; wave.appendChild(b); }
+let startMs=Date.now();
+function ts(){ let s=Math.max(0,((Date.now()-startMs)/1000)|0); return String((s/60)|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+const fromSel=$('#fromSel'), toSel=$('#toSel'), apiKeyEl=$('#apiKey'), provSel=$('#provSel'), keyLink=$('#keyLink');
+const refBody=$('#refBody'), refCol=$('#refCol'), refDrag=$('#refDrag'), refine=$('#refine'),
+      subWrap=$('#subWrap'), keyBar=$('#keyBar'), cpyRefine=$('#cpyRefine');
+
+// ===== AI プロバイダー (CIGNAL の ai_chat 相当をブラウザに移植) =====
+// 注: ブラウザ直叩きは CORS の可否がプロバイダー次第。Gemini/OpenRouter/Claude は可。
+//     Groq/Grok は環境により弾かれることがある (CIGNAL は Rust 代理なので全部通る)。
+async function oai(p,k,url,model){
+  const r=await fetch(url,{method:'POST',headers:{'Authorization':'Bearer '+k,'content-type':'application/json'},
+    body:JSON.stringify({model,messages:[{role:'user',content:p}],max_tokens:2048})});
+  if(!r.ok) throw 'HTTP '+r.status; const j=await r.json();
+  return (j.choices?.[0]?.message?.content||'').trim();
+}
+const PROVIDERS = {
+  gemini:{ label:'Gemini', link:'https://aistudio.google.com/apikey', cors:true, async call(p,k){
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${k}`,
+      {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:p}]}]})});
+    if(!r.ok) throw 'HTTP '+r.status; const j=await r.json();
+    return (j.candidates?.[0]?.content?.parts?.[0]?.text||'').trim(); } },
+  groq:{ label:'Groq', link:'https://console.groq.com/keys', cors:false,
+    call:(p,k)=>oai(p,k,'https://api.groq.com/openai/v1/chat/completions','llama-3.3-70b-versatile') },
+  openrouter:{ label:'OpenRouter', link:'https://openrouter.ai/keys', cors:true,
+    call:(p,k)=>oai(p,k,'https://openrouter.ai/api/v1/chat/completions','meta-llama/llama-3.3-70b-instruct') },
+  grok:{ label:'Grok', link:'https://console.x.ai', cors:false,
+    call:(p,k)=>oai(p,k,'https://api.x.ai/v1/chat/completions','grok-3-mini') },
+  claude:{ label:'Claude', link:'https://console.anthropic.com/settings/keys', cors:true, async call(p,k){
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{
+      'x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},
+      body:JSON.stringify({model:'claude-3-5-haiku-latest',max_tokens:2048,messages:[{role:'user',content:p}]})});
+    if(!r.ok) throw 'HTTP '+r.status; const j=await r.json();
+    return (j.content?.[0]?.text||'').trim(); } },
+};
+let aiKeys={}; try{ aiKeys=JSON.parse(localStorage.getItem('ai_keys')||'{}'); }catch(e){}
+provSel.value = localStorage.getItem('ai_provider') || 'gemini';
+function syncKeyUI(){ const c=PROVIDERS[provSel.value];
+  apiKeyEl.value = aiKeys[provSel.value]||'';
+  keyLink.href=c.link;
+  apiKeyEl.placeholder = c.label+' のAPIキー'+(c.cors?'':'（※ブラウザ直叩きはCORS不可な場合あり）'); }
+provSel.onchange = ()=>{ localStorage.setItem('ai_provider',provSel.value); syncKeyUI(); };
+apiKeyEl.onchange = ()=>{ aiKeys[provSel.value]=apiKeyEl.value.trim(); localStorage.setItem('ai_keys',JSON.stringify(aiKeys)); };
+syncKeyUI();
+function currentKey(){ return (apiKeyEl.value||'').trim(); }
+async function AI(prompt){ const k=currentKey(); if(!k) throw 'no-key'; return PROVIDERS[provSel.value].call(prompt,k); }
+
+// ===== 状態 =====
+let asr=null, running=false, audioCtx=null, proc=null, srcNode=null;
+const orig=[];               // 原文の蓄積
+let sumIdx=0, summary='', mode='prose', refLang='ja', auto=false, busy=false, autoTimer=null;
+
+// ===== Whisper ロード =====
+async function ensureASR(){
+  if(asr) return asr;
+  // 初回のみ: モデルDLの確認 (以後はブラウザにキャッシュされるので確認しない)
+  if(!localStorage.getItem('whisper_dl_ok')){
+    if(!confirm('音声認識モデル「Whisper ('+WHISPER_MODEL+')」を初回だけダウンロードします。\n数十MB・以後はブラウザにキャッシュされ再DLなし。\n\nダウンロードして開始しますか？')){
+      throw new Error('cancelled');
+    }
+  }
+  const pc = (p)=>{ if(p && p.status==='progress' && p.file){ const pct=Math.round(p.progress||0); interim.textContent=`🧠 モデルDL ${String(p.file).split('/').pop()} ${pct}%`; } };
+  interim.textContent='🧠 Whisper モデルを準備中…(初回のみDL・数十MB)';
+  try{
+    asr = await pipeline('automatic-speech-recognition', WHISPER_MODEL, { device:'webgpu', progress_callback: pc });
+    interim.textContent='✅ モデル準備完了 (WebGPU)';
+  }catch(e){
+    console.warn('WebGPU不可→CPUで再試行', e);
+    asr = await pipeline('automatic-speech-recognition', WHISPER_MODEL, { progress_callback: pc });
+    interim.textContent='✅ モデル準備完了 (CPU)';
+  }
+  localStorage.setItem('whisper_dl_ok','1'); // 次回から確認なし
+  return asr;
+}
+
+// ===== 画面共有 → 音声処理 =====
+startBtn.onclick = async ()=>{
+  if(running){ stopShare(); return; }
+  // 事前チェック: 画面共有が使える環境か (insecure context / 非対応ブラウザを弾く)
+  if(!window.isSecureContext || !(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)){
+    alert('画面共有が使えません。\n\n● このページは「http://localhost:8000/」のように localhost か https で開いてください。\n   （IPアドレスや file:// だとブラウザが共有をブロックします）\n● デスクトップ版の Chrome / Edge が必要です。\n● CIGNAL等のアプリ内ブラウザではなく、通常のブラウザで開いてください。');
+    return;
+  }
+  // STEP 1: 音声モデルを準備 (★共有より前＝このタブがアクティブなうちに確認する。
+  //         共有後だと非アクティブになり confirm() が Chrome にブロックされるため)
+  if(!asr){
+    try{ await ensureASR(); }
+    catch(e){
+      if(String(e&&(e.message||e)).includes('cancel')){ interim.textContent='モデルDLをキャンセルしました'; return; }
+      alert('音声モデルの読み込みに失敗しました: '+(e.message||e)+'\n(ネット接続/ブラウザ対応をご確認ください)'); return;
+    }
+    interim.textContent='✅ 準備完了 — もう一度 ▶START を押すと共有が始まります';
+    return; // 共有は次のクリックで (ユーザー操作を取り直して getDisplayMedia を呼ぶ)
+  }
+
+  // STEP 2: 画面共有 (クリック直後に getDisplayMedia を呼ぶ＝ユーザー操作が有効)
+  let stream, controller=null;
+  // CaptureController: 共有先タブにフォーカスを移さない＝翻訳画面に留まる
+  try{ if(typeof CaptureController!=='undefined') controller=new CaptureController(); }catch(e){}
+  try{
+    const opts={
+      video:true, audio:true,
+      selfBrowserSurface:'exclude',   // 自分(翻訳)タブを候補から除外
+      surfaceSwitching:'include',
+      systemAudio:'include'
+    };
+    if(controller) opts.controller=controller;
+    stream = await navigator.mediaDevices.getDisplayMedia(opts);
+    // ★ 共有先にフォーカスを奪わせない (この呼び出し直後に同期で実行する必要あり)
+    if(controller){ try{ controller.setFocusBehavior('no-focus-change'); }catch(e){} }
+  }catch(e){ alert('共有がキャンセルされました: '+(e.message||e)); return; }
+  const aTracks = stream.getAudioTracks();
+  if(!aTracks.length){ alert('音声が共有されていません。\n「タブの音声も共有」にチェックして、もう一度共有してください。'); stream.getTracks().forEach(t=>t.stop()); return; }
+
+  vid.srcObject = stream; vid.style.display='block'; vidHint.style.display='none';
+  stream.getVideoTracks()[0].addEventListener('ended', stopShare); // 共有停止検知
+
+  audioCtx = new AudioContext();
+  try{ await audioCtx.resume(); }catch(e){} // suspended のままだと onaudioprocess が来ない
+  srcNode = audioCtx.createMediaStreamSource(new MediaStream(aTracks));
+  proc = audioCtx.createScriptProcessor(4096, 1, 1);
+  const sink = audioCtx.createGain(); sink.gain.value = 0; // 二重再生しないよう無音でdestinationへ
+  srcNode.connect(proc); proc.connect(sink); sink.connect(audioCtx.destination);
+  proc.onaudioprocess = onAudio;
+
+  running=true; liveDot.classList.add('on'); startMs=Date.now(); wave.style.display='flex';
+  startBtn.textContent='⏹ STOP'; startBtn.style.background='#e74c3c';
+  interim.textContent='🔊 取り込み中… (音が鳴れば字幕が出ます)';
+};
+
+function stopShare(){
+  running=false; liveDot.classList.remove('on'); wave.style.display='none';
+  startBtn.textContent='▶ START'; startBtn.style.background='';
+  clearTimeout(autoTimer);
+  try{ proc&&(proc.onaudioprocess=null); srcNode&&srcNode.disconnect(); proc&&proc.disconnect(); }catch(e){}
+  try{ audioCtx&&audioCtx.close(); }catch(e){}
+  if(vid.srcObject){ vid.srcObject.getTracks().forEach(t=>t.stop()); vid.srcObject=null; }
+  vid.style.display='none'; vidHint.style.display='block';
+  interim.textContent='停止しました';
+}
+
+// ===== VAD (CIGNAL の Rust 実装を JS 移植) =====
+let winAcc=[], speech=[], preroll=[], inSpeech=false, silence=0, srcRate=48000;
+const TH=0.006;
+function onAudio(ev){
+  if(!running) return;
+  srcRate = audioCtx.sampleRate;
+  const win = (srcRate/50)|0, silLimit=(srcRate*0.6)|0, minLen=(srcRate*0.4)|0, maxLen=srcRate*12, prerollCap=(srcRate*0.3)|0;
+  const data = ev.inputBuffer.getChannelData(0); // モノラル(共有音声は実質1ch扱いでOK)
+  for(let i=0;i<data.length;i++){
+    const s=data[i]; winAcc.push(s);
+    if(winAcc.length>=win){
+      let sq=0; for(const x of winAcc) sq+=x*x;
+      const rms=Math.sqrt(sq/winAcc.length); const voiced=rms>TH;
+      if(voiced){
+        if(!inSpeech){ inSpeech=true; speech=preroll.slice(); }
+        for(const x of winAcc) speech.push(x); silence=0;
+      }else{
+        for(const x of winAcc){ preroll.push(x); if(preroll.length>prerollCap) preroll.shift(); }
+        if(inSpeech){ for(const x of winAcc) speech.push(x); silence+=winAcc.length;
+          if(silence>=silLimit){ flush(minLen); } }
+      }
+      if(inSpeech && speech.length>=maxLen){ flush(minLen); }
+      winAcc.length=0;
+    }
+  }
+}
+function flush(minLen){
+  if(speech.length>=minLen){ const seg=resample16k(speech, srcRate); transcribe(seg); }
+  speech=[]; inSpeech=false; silence=0;
+}
+function resample16k(input, rate){
+  if(rate===16000) return Float32Array.from(input);
+  const ratio=16000/rate, out=new Float32Array((input.length*ratio)|0);
+  for(let i=0;i<out.length;i++){ const p=i/ratio, idx=p|0, f=p-idx; const a=input[idx]||0, b=input[idx+1]!==undefined?input[idx+1]:a; out[i]=a+(b-a)*f; }
+  return out;
+}
+
+// ===== 文字起こし → 字幕追加 =====
+let sttBusy=false; const sttQueue=[];
+async function transcribe(seg){
+  sttQueue.push(seg); if(sttBusy) return; sttBusy=true;
+  while(sttQueue.length){
+    const s=sttQueue.shift();
+    try{
+      const lang=fromSel.value, opt={ task:'transcribe' };
+      if(lang!=='auto' && LANG_FULL[lang]) opt.language=LANG_FULL[lang];
+      if(running) interim.textContent='🧠 認識中…';
+      const out=await asr(s, opt);
+      const t=clean(out.text);
+      if(t) addPair(t);
+    }catch(e){ console.warn('ASR error', e); }
+  }
+  sttBusy=false;
+  if(running) interim.textContent='🔊 取り込み中…';
+}
+function clean(s){ const t=(s||'').trim(); const low=t.toLowerCase();
+  const junk=['[blank_audio]','(silence)','[silence]','[music]','(music)','you','thank you.','thanks for watching!'];
+  if(!t || junk.includes(low)) return ''; if([...t].every(c=>!/[a-z0-9぀-ヿ一-鿿가-힣]/i.test(c))) return ''; return t; }
+
+function addPair(text){
+  orig.push(text);
+  feed.querySelectorAll('.line.active').forEach(l=>l.classList.remove('active'));
+  const line=document.createElement('div'); line.className='line active';
+  line.innerHTML='<div class="t"></div><div class="cols"><div class="src"></div><div class="dst"><span class="cur"></span></div></div>';
+  line.querySelector('.t').textContent=ts();
+  line.querySelector('.src').textContent=text;   // 左: 原文(英語)
+  const dst=line.querySelector('.dst');           // 右: 訳(日本語)
+  feed.appendChild(line); sync();
+  translate(text).then(x=>{ dst.textContent=x||text; sync(); })
+                 .catch(()=>{ dst.textContent='(翻訳失敗・原文表示)'; dst.style.color='#e0a030'; });
+  maybeAuto();
+}
+function sync(){ feed.scrollTop=feed.scrollHeight; }
+
+// ===== 翻訳 (キー不要・無料CORS API。AIキーは要約/整文のみ) =====
+async function translate(text){
+  const to=toSel.value, from=fromSel.value;
+  // 1) Lingva (auto対応・Google品質)
+  for(const m of ['https://lingva.ml','https://lingva.garudalinux.org']){
+    try{ const r=await fetch(`${m}/api/v1/${from||'auto'}/${to}/${encodeURIComponent(text)}`);
+      if(r.ok){ const j=await r.json(); if(j && j.translation) return j.translation; } }catch(e){}
+  }
+  // 2) MyMemory フォールバック (auto非対応なのでenを既定に)
+  try{ const r=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${(from&&from!=='auto')?from:'en'}|${to}`);
+    const j=await r.json(); if(j && j.responseData && j.responseData.translatedText) return j.responseData.translatedText; }catch(e){}
+  throw 'translate failed';
+}
+
+// ===== 整文 / 要約 (ローリング) =====
+// (整形コントロールはフィード下のチップに一本化。labels() は廃止)
+function renderSum(){ if(summary) refBody.textContent=summary; else refBody.innerHTML='<span class="muted">必要な時だけ。「整える/要約」かAUTOで生成。AIキーが無くても、上の 📋 で字幕をコピーして普段使いのAIに貼り付けて要約してもOK。</span>'; }
+function flash(msg,c){ refBody.innerHTML=`<span style="color:${c||'#e0a030'};font-size:11px">${msg}</span>`; setTimeout(()=>{ if(!busy) renderSum(); },2400); }
+function maybeAuto(){ if(!auto||busy) return; if(orig.length-sumIdx<AUTO_THRESHOLD) return;
+  clearTimeout(autoTimer); autoTimer=setTimeout(()=>{ if(auto&&!busy) doRefine(); },1500); }
+
+async function doRefine(manual){
+  if(busy) return;
+  const newLines=orig.slice(sumIdx);
+  if(!newLines.length){ if(manual) flash('新規の発話がありません'); return; }
+  if(!currentKey()){ flash('AIキーを入力してください（プロバイダーを選んでキー設定）', '#e74c3c'); return; }
+  busy=true; chShori.style.opacity=chYoyaku.style.opacity='.45'; refBody.innerHTML='<span class="muted">生成中…</span>';
+  const ln=LANG_NAME[toSel.value]||'日本語'; const target=orig.length; const had=summary||'(なし)';
+  let prompt;
+  if(mode==='prose'){
+    prompt=`以下はライブ音声の文字起こしです（断片的で誤認識や言い直しを含む）。意味を変えず、自然で読みやすい文章に整えてください。要約ではなく情報は省略しない。フィラー除去・断片を文として接続・誤変換は文脈で修正。「これまでの整文」に続けて新しい行を段落として書き足し、一つの読み物に更新。出力は${ln}の本文のみ(前置き・箇条書き・見出し・コード不要)。\n\n【これまでの整文】\n${had}\n\n【新しい文字起こし】\n${newLines.join('\n')}`;
+  }else{
+    prompt=`以下はライブ音声の文字起こし。これまでの要約に新規を統合し累積要約に更新。出力は${ln}で簡潔な箇条書き(・)のみ。前置き不要、重複は1つに。\n\n【これまでの要約】\n${had}\n\n【新しい文字起こし】\n${newLines.join('\n')}`;
+  }
+  try{ const r=await AI(prompt); summary=r; sumIdx=target; renderSum(); refBody.scrollTop=0; }
+  catch(e){ flash('生成失敗: '+e, '#e74c3c'); }
+  finally{ busy=false; chShori.style.opacity=chYoyaku.style.opacity=''; }
+}
+
+// ===== 下段UI (結果表示のみ。操作はチップに一本化) =====
+cpyRefine.onclick=()=>{ if(summary) navigator.clipboard.writeText(summary); };
+let sumOpen=false, ratio=0.5;
+function applyOpen(){ if(sumOpen){ refDrag.style.display='flex'; refBody.style.display='block'; keyBar.style.display='flex'; subWrap.style.flex=(1-ratio)+' 1 0'; refine.style.flex=ratio+' 1 0'; refCol.textContent='▾'; }
+  else{ refDrag.style.display='none'; refBody.style.display='none'; keyBar.style.display='none'; subWrap.style.flex='1 1 0'; refine.style.flex='0 0 auto'; refCol.textContent='▸'; } }
+refCol.onclick=()=>{ sumOpen=!sumOpen; applyOpen(); };
+$('#refTitle').onclick=()=>{ sumOpen=!sumOpen; applyOpen(); };
+let drag=false;
+refDrag.onpointerdown=e=>{ drag=true; refDrag.firstChild.style.background='rgb(var(--ui-rgb))'; refDrag.setPointerCapture(e.pointerId); e.preventDefault(); };
+refDrag.onpointermove=e=>{ if(!drag) return; const r=document.querySelector('#right').getBoundingClientRect(); ratio=Math.max(.15,Math.min(.85,(r.bottom-e.clientY)/r.height)); subWrap.style.flex=(1-ratio)+' 1 0'; refine.style.flex=ratio+' 1 0'; };
+refDrag.onpointerup=e=>{ drag=false; refDrag.firstChild.style.background='var(--border)'; try{refDrag.releasePointerCapture(e.pointerId);}catch(_){} };
+
+applyOpen();
+
+// 言語ヘッダー / スワップ / コピー
+function updateMeta(){ chL.textContent=(fromSel.value==='auto')?'原文(自動)':(LANG_NAME[fromSel.value]||fromSel.value); chR.textContent=LANG_NAME[toSel.value]||toSel.value; chTrans.textContent='翻訳 '+toSel.value.toUpperCase(); }
+fromSel.onchange=updateMeta; toSel.onchange=updateMeta; updateMeta();
+swapBtn.onclick=()=>{ if(fromSel.value==='auto') return; const f=fromSel.value,t=toSel.value; fromSel.value=t; toSel.value=f; updateMeta(); };
+cpyAll.onclick=()=>{ const t=[...feed.querySelectorAll('.dst')].map(l=>l.textContent.trim()).filter(Boolean).join('\n'); if(t) navigator.clipboard.writeText(t); };
+// フィード下のチップ → 整える/要約/AUTO を実機能に配線
+chShori.onclick=()=>{ if(mode!=='prose'){ mode='prose'; sumIdx=0; summary=''; } if(!sumOpen){ sumOpen=true; applyOpen(); } doRefine(true); };
+chYoyaku.onclick=()=>{ if(mode!=='digest'){ mode='digest'; sumIdx=0; summary=''; } if(!sumOpen){ sumOpen=true; applyOpen(); } doRefine(true); };
+chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) maybeAuto(); };
+</script>
+</body>
+</html>
