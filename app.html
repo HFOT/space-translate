@@ -30,7 +30,7 @@
   #app{display:flex;height:100vh;width:100vw}
 
   /* 左: 共有タブのプレビュー */
-  #left{position:relative;overflow:hidden;flex:1.1;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--border);background:#04080a}
+  #left{position:relative;overflow:hidden;flex:1.35;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--border);background:#04080a;transition:flex .35s ease}
   .left-bg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
   .left-bg .glow{position:absolute;width:72%;height:60%;left:-14%;bottom:-18%;border-radius:50%;filter:blur(82px);background:radial-gradient(circle,rgba(47,224,196,.20),transparent 62%)}
   .left-bg .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:60px 60px;-webkit-mask-image:radial-gradient(120% 90% at 50% 0%,#000 30%,transparent 80%);mask-image:radial-gradient(120% 90% at 50% 0%,#000 30%,transparent 80%)}
@@ -82,7 +82,17 @@
   .dlbtn.primary{border:none;background:rgb(var(--ui-rgb));color:#04221d;font-weight:700}
 
   /* 右: 翻訳 + 整文 */
-  #right{flex:1;min-width:0;display:flex;flex-direction:column}
+  #right{flex:.9;min-width:0;display:flex;flex-direction:column;transition:flex .35s ease}
+  /* 開始前=右コンパクト+中央CTA / 開始後=右拡大でフィード */
+  #app.live #left{flex:1}
+  #app.live #right{flex:1.12}
+  #startPrompt{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:30px;text-align:center}
+  #startPrompt .sp-logo{width:60px;height:60px;filter:drop-shadow(0 6px 22px rgba(47,224,196,.35))}
+  #startPrompt #startBig{font-size:16px;font-weight:700;padding:14px 38px;border-radius:980px;box-shadow:0 8px 26px rgba(47,224,196,.32)}
+  #startPrompt .sp-hint{color:var(--tx3);font-size:12px;line-height:1.7}
+  #app:not(.live) #startPrompt{display:flex}
+  #app:not(.live) #feedMeta,#app:not(.live) .bigwave,#app:not(.live) #feed,#app:not(.live) .feed-foot,#app:not(.live) #refine{display:none}
+  #app:not(.live) #startBtn{display:none}
   #rHead{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
   .dot{width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0}
   .dot.on{background:rgb(var(--ui-rgb));box-shadow:0 0 8px rgb(var(--ui-rgb))}
@@ -317,6 +327,11 @@
         <span class="chip act" id="chYoyaku" title="箇条書きで要約">要約</span>
         <span class="chip act" id="chAuto" title="一定量たまったら自動生成">AUTO</span>
       </div>
+      <div id="startPrompt">
+        <svg class="sp-logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="url(#sgrad)"/><g fill="#fff"><rect x="9.6" y="17" width="2.8" height="6" rx="1.4"/><rect x="15" y="12" width="2.8" height="16" rx="1.4"/><rect x="20.4" y="15" width="2.8" height="10" rx="1.4"/><rect x="25.8" y="10.5" width="2.8" height="19" rx="1.4"/></g></svg>
+        <button class="btn primary" id="startBig">▶ 始める</button>
+        <div class="sp-hint">押すとタブ共有で字幕がスタート<br><span style="opacity:.65">言語は右上で設定 ・ 初回のみモデルを安全にDL</span></div>
+      </div>
     </div>
     <div id="interim">準備中… モデルは初回のみ自動ダウンロード</div>
 
@@ -466,7 +481,8 @@ async function ensureASR(){
 }
 
 // ===== 画面共有 → 音声処理 =====
-startBtn.onclick = async ()=>{
+const appEl = document.getElementById('app');
+async function onStart(){
   if(running){ stopShare(); return; }
   // 事前チェック: 画面共有が使える環境か (insecure context / 非対応ブラウザを弾く)
   if(!window.isSecureContext || !(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)){
@@ -515,13 +531,15 @@ startBtn.onclick = async ()=>{
   srcNode.connect(proc); proc.connect(sink); sink.connect(audioCtx.destination);
   proc.onaudioprocess = onAudio;
 
-  running=true; liveDot.classList.add('on'); startMs=Date.now(); wave.style.display='flex';
+  running=true; appEl.classList.add('live'); liveDot.classList.add('on'); startMs=Date.now(); wave.style.display='flex';
   startBtn.textContent='⏹ STOP'; startBtn.style.background='#e74c3c';
   interim.textContent='🔊 取り込み中… (音が鳴れば字幕が出ます)';
-};
+}
+startBtn.onclick = onStart;
+const startBig = document.getElementById('startBig'); if(startBig) startBig.onclick = onStart;
 
 function stopShare(){
-  running=false; liveDot.classList.remove('on'); wave.style.display='none';
+  running=false; appEl.classList.remove('live'); liveDot.classList.remove('on'); wave.style.display='none';
   startBtn.textContent='▶ START'; startBtn.style.background='';
   clearTimeout(autoTimer);
   try{ proc&&(proc.onaudioprocess=null); srcNode&&srcNode.disconnect(); proc&&proc.disconnect(); }catch(e){}
