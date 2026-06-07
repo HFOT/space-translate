@@ -383,6 +383,7 @@
         <span class="chip act" id="chShori" title="読みやすい文章に整える">整える</span>
         <span class="chip act" id="chYoyaku" title="箇条書きで要約">要約</span>
         <span class="chip act" id="chAuto" title="一定量たまったら自動生成">AUTO</span>
+        <span class="chip act" id="chSilent" title="Space登壇者向け。共有タブ/PCをミュートしても字幕は動き続けます。">🔇 音なし</span>
       </div>
       <div id="startPrompt">
         <svg class="sp-logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="url(#sgrad)"/><g fill="#fff"><rect x="9.6" y="17" width="2.8" height="6" rx="1.4"/><rect x="15" y="12" width="2.8" height="16" rx="1.4"/><rect x="20.4" y="15" width="2.8" height="10" rx="1.4"/><rect x="25.8" y="10.5" width="2.8" height="19" rx="1.4"/></g></svg>
@@ -631,12 +632,20 @@ function setTheme(t){ document.documentElement.setAttribute('data-theme', t); th
 themeToggle.onclick=()=> setTheme(document.documentElement.getAttribute('data-theme')==='light' ? 'dark' : 'light');
 setTheme(localStorage.getItem('lp_theme') || 'dark');
 
-// 音なし翻訳モード (登壇者向け: PCミュートでも字幕)
-const silentChk=document.getElementById('silentChk');
-if(silentChk){
-  silentChk.checked = localStorage.getItem('silent_mode')==='1';
-  silentChk.onchange=()=> localStorage.setItem('silent_mode', silentChk.checked?'1':'0');
+// 音なし翻訳モード (登壇者向け: PCミュートでも字幕)。スタート画面とフィードの両方で操作
+const silentChk=document.getElementById('silentChk'), chSilent=document.getElementById('chSilent');
+function setSilent(on){
+  localStorage.setItem('silent_mode', on?'1':'0');
+  if(silentChk) silentChk.checked=on;
+  if(chSilent) chSilent.classList.toggle('on', on);
+  try{ if(vid) vid.muted=true; }catch(e){} // アプリ側は常に無音
+  if(running) interim.textContent = on
+    ? '🔇 音なしモード ON — 共有タブ/PC をミュートしてOK（字幕は内部で動き続けます）'
+    : '🔊 取り込み中… (音が鳴れば字幕が出ます)';
 }
+if(silentChk) silentChk.onchange=()=> setSilent(silentChk.checked);
+if(chSilent) chSilent.onclick=()=> setSilent(!chSilent.classList.contains('on'));
+setSilent(localStorage.getItem('silent_mode')==='1');
 
 function stopShare(){
   running=false; appEl.classList.remove('live'); liveDot.classList.remove('on'); wave.style.display='none';
