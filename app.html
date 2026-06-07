@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>X Space LIVE 翻訳 + 整文 (Web版プロトタイプ)</title>
+<title>Space Translate LIVE</title>
 <!--
   CIGNAL OS の LIVE翻訳パネルを「単体ウェブページ」に移植したプロトタイプ。
   左=共有タブ(Xスペース等)のプレビュー / 右上=字幕(原文|訳) / 右下=整文・要約
@@ -316,8 +316,8 @@
   <div id="left">
     <div class="left-bg" aria-hidden="true"><span class="glow"></span><span class="grid"></span></div>
     <div id="topCtl">
-      <button id="themeToggle" title="ライト / ダーク切替">☀</button>
-      <div id="langToggle" aria-label="表示言語">
+      <button id="themeToggle" title="Light / Dark">☀</button>
+      <div id="langToggle" aria-label="Language">
         <button data-lang="ja" class="on">日本語</button>
         <button data-lang="en">EN</button>
       </div>
@@ -350,23 +350,23 @@
     </div>
   </div>
 
-  <div id="splitH" title="ドラッグで左右の幅を変更" aria-hidden="true"></div>
+  <div id="splitH" title="Drag to resize" aria-hidden="true"></div>
 
   <!-- 右: 翻訳 + 整文 -->
   <div id="right">
     <div id="rHead">
       <span class="dot" id="liveDot"></span>
       <b style="font-size:12px;color:var(--tx2)">LIVE</b>
-      <button class="btn" id="chSilent" title="※PCの音量０でも翻訳継続できます（共有タブをミュートしてもOK）" style="padding:5px 11px;font-size:12px;margin-left:6px" data-ja="🔇 音無し翻訳MODE" data-en="🔇 Silent Mode">🔇 音無し翻訳MODE</button>
+      <button class="btn" id="chSilent" data-ja-title="※PCの音量０でも翻訳継続できます（共有タブをミュートしてもOK）" data-en-title="Keeps translating even at zero PC volume (muting the shared tab is fine)" style="padding:5px 11px;font-size:12px;margin-left:6px" data-ja="🔇 音無し翻訳MODE" data-en="🔇 Silent Mode">🔇 音無し翻訳MODE</button>
       <span class="sp"></span>
-      <select id="fromSel" title="音声(原文)の言語">
-        <option value="auto">自動判定</option><option value="en" selected>英語 EN</option><option value="ja">日本語 JP</option>
-        <option value="ko">韓国語 KR</option><option value="zh">中国語 CN</option><option value="es">スペイン語</option><option value="fr">フランス語</option><option value="de">ドイツ語</option>
+      <select id="fromSel" data-ja-title="音声(原文)の言語" data-en-title="Source (spoken) language">
+        <option value="auto" data-ja="自動判定" data-en="Auto">自動判定</option><option value="en" selected data-ja="英語 EN" data-en="English">英語 EN</option><option value="ja" data-ja="日本語 JP" data-en="Japanese">日本語 JP</option>
+        <option value="ko" data-ja="韓国語 KR" data-en="Korean">韓国語 KR</option><option value="zh" data-ja="中国語 CN" data-en="Chinese">中国語 CN</option><option value="es" data-ja="スペイン語" data-en="Spanish">スペイン語</option><option value="fr" data-ja="フランス語" data-en="French">フランス語</option><option value="de" data-ja="ドイツ語" data-en="German">ドイツ語</option>
       </select>
-      <button class="btn" id="swapBtn" title="言語を入れ替え" style="padding:6px 10px">⇄</button>
-      <select id="toSel" title="翻訳先の言語">
-        <option value="ja" selected>日本語 JP</option><option value="en">英語 EN</option><option value="ko">韓国語 KR</option>
-        <option value="zh">中国語 CN</option><option value="es">スペイン語</option><option value="fr">フランス語</option><option value="de">ドイツ語</option>
+      <button class="btn" id="swapBtn" data-ja-title="言語を入れ替え" data-en-title="Swap languages" style="padding:6px 10px">⇄</button>
+      <select id="toSel" data-ja-title="翻訳先の言語" data-en-title="Target language">
+        <option value="ja" selected data-ja="日本語 JP" data-en="Japanese">日本語 JP</option><option value="en" data-ja="英語 EN" data-en="English">英語 EN</option><option value="ko" data-ja="韓国語 KR" data-en="Korean">韓国語 KR</option>
+        <option value="zh" data-ja="中国語 CN" data-en="Chinese">中国語 CN</option><option value="es" data-ja="スペイン語" data-en="Spanish">スペイン語</option><option value="fr" data-ja="フランス語" data-en="French">フランス語</option><option value="de" data-ja="ドイツ語" data-en="German">ドイツ語</option>
       </select>
       <button class="btn primary" id="startBtn" style="margin-left:4px">▶ START</button>
     </div>
@@ -375,24 +375,24 @@
       <div id="feedMeta">
         <span class="ch l" id="chL">English</span>
         <span class="ch r" id="chR">日本語</span>
-        <button class="cpy" id="cpyAll" title="訳をすべてコピー">📋</button>
+        <button class="cpy" id="cpyAll" data-ja-title="訳をすべてコピー" data-en-title="Copy all translations">📋</button>
       </div>
       <div class="bigwave" id="wave" aria-hidden="true"></div>
       <div id="feed"></div>
       <div class="feed-foot">
         <span class="chip on" data-ja="● 字幕" data-en="● Captions">● 字幕</span>
         <span class="chip" id="chTrans">翻訳 JA</span>
-        <span class="chip act" id="chShori" title="読みやすい文章に整える" data-ja="整える" data-en="Refine">整える</span>
-        <span class="chip act" id="chYoyaku" title="箇条書きで要約" data-ja="要約" data-en="Summarize">要約</span>
-        <span class="chip act" id="chAuto" title="一定量たまったら自動生成">AUTO</span>
+        <span class="chip act" id="chShori" data-ja-title="読みやすい文章に整える" data-en-title="Smooth into readable prose" data-ja="整える" data-en="Refine">整える</span>
+        <span class="chip act" id="chYoyaku" data-ja-title="箇条書きで要約" data-en-title="Summarize as bullet points" data-ja="要約" data-en="Summarize">要約</span>
+        <span class="chip act" id="chAuto" data-ja-title="一定量たまったら自動生成" data-en-title="Auto-generate once enough accumulates">AUTO</span>
       </div>
       <div id="startPrompt">
         <svg class="sp-logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="url(#sgrad)"/><g fill="#fff"><rect x="9.6" y="17" width="2.8" height="6" rx="1.4"/><rect x="15" y="12" width="2.8" height="16" rx="1.4"/><rect x="20.4" y="15" width="2.8" height="10" rx="1.4"/><rect x="25.8" y="10.5" width="2.8" height="19" rx="1.4"/></g></svg>
-        <button class="btn primary" id="startBig">▶ 始める</button>
-        <div class="sp-hint">押すとタブ共有で字幕がスタート<br><span style="opacity:.65">言語は右上で設定 ・ 初回のみモデルを安全にDL</span></div>
+        <button class="btn primary" id="startBig" data-ja="▶ 始める" data-en="▶ Start">▶ 始める</button>
+        <div class="sp-hint" data-ja="押すとタブ共有で字幕がスタート<br><span style='opacity:.65'>言語は右上で設定 ・ 初回のみモデルを安全にDL</span>" data-en="Press to share a tab and start captions<br><span style='opacity:.65'>Set language top-right · Model downloads once on first use</span>">押すとタブ共有で字幕がスタート<br><span style="opacity:.65">言語は右上で設定 ・ 初回のみモデルを安全にDL</span></div>
       </div>
     </div>
-    <div id="interim">準備中… モデルは初回のみ自動ダウンロード</div>
+    <div id="interim" data-ja="準備中… モデルは初回のみ自動ダウンロード" data-en="Preparing… Model downloads once on first use">準備中… モデルは初回のみ自動ダウンロード</div>
 
     <!-- 下段 整文/要約 -->
     <div id="refine">
@@ -400,8 +400,8 @@
       <div id="refHead">
         <span class="t" id="refTitle" data-ja="📋 整形結果" data-en="📋 Result">📋 整形結果</span>
         <span class="sp"></span>
-        <button class="cpy" id="cpyRefine" title="結果をコピー">📋</button>
-        <button class="btn" id="refCol" title="下段の開閉" style="border:none;background:transparent;color:var(--tx3);font-size:15px">▾</button>
+        <button class="cpy" id="cpyRefine" data-ja-title="結果をコピー" data-en-title="Copy result">📋</button>
+        <button class="btn" id="refCol" data-ja-title="下段の開閉" data-en-title="Toggle lower panel" style="border:none;background:transparent;color:var(--tx3);font-size:15px">▾</button>
       </div>
       <div id="keyBar">
         <span data-ja="AI(整形/要約のみ):" data-en="AI (refine/summary only):">AI(整形/要約のみ):</span>
@@ -412,10 +412,10 @@
           <option value="claude">Claude</option>
           <option value="grok">Grok</option>
         </select>
-        <input id="apiKey" type="password" placeholder="APIキー（要約・整文のみ使用／文字起こし・翻訳は不要）" style="flex:1">
-        <a id="keyLink" href="#" target="_blank" rel="noopener">キー取得</a>
+        <input id="apiKey" type="password" data-ja-ph="APIキー（要約・整文のみ使用／文字起こし・翻訳は不要）" data-en-ph="API key (for refine/summary only — transcription &amp; translation are free)" placeholder="APIキー（要約・整文のみ使用／文字起こし・翻訳は不要）" style="flex:1">
+        <a id="keyLink" href="#" target="_blank" rel="noopener" data-ja="キー取得" data-en="Get key">キー取得</a>
       </div>
-      <div id="refBody"><span class="muted">必要な時だけ。「整える/要約」かAUTOで生成（整文＝読みやすい文章 / 要約＝箇条書き）。AIキーが無くても、上の 📋 で字幕をコピーして普段使いのAIに貼り付けて要約してもOK。</span></div>
+      <div id="refBody"><span class="muted" data-ja="必要な時だけ。「整える/要約」かAUTOで生成（整文＝読みやすい文章 / 要約＝箇条書き）。AIキーが無くても、上の 📋 で字幕をコピーして普段使いのAIに貼り付けて要約してもOK。" data-en="Optional. Use &quot;Refine/Summarize&quot; or AUTO to generate (Refine = readable prose / Summarize = bullet points). Even without an AI key, you can copy captions with 📋 above and paste into your usual AI.">必要な時だけ。「整える/要約」かAUTOで生成（整文＝読みやすい文章 / 要約＝箇条書き）。AIキーが無くても、上の 📋 で字幕をコピーして普段使いのAIに貼り付けて要約してもOK。</span></div>
     </div>
   </div>
 </div>
@@ -424,16 +424,16 @@
 <div id="dlConsent" aria-modal="true">
   <div class="dlBox">
     <div class="dlIcon">🔒</div>
-    <h3>初回だけ、音声モデルを取得します</h3>
-    <p>すべて<b>あなたのブラウザ内だけで完結</b>します。音声は外部に送信されません。</p>
+    <h3 data-ja="初回だけ、音声モデルを取得します" data-en="One-time download of the speech model">初回だけ、音声モデルを取得します</h3>
+    <p data-ja="すべて<b>あなたのブラウザ内だけで完結</b>します。音声は外部に送信されません。" data-en="Everything runs <b>entirely in your browser</b>. Audio is never sent externally.">すべて<b>あなたのブラウザ内だけで完結</b>します。音声は外部に送信されません。</p>
     <ul>
-      <li>提供元：<b>Hugging Face</b>（世界標準の公開AIモデル配布サイト）</li>
-      <li>内容：<b>OpenAI のオープンソース Whisper</b>（音声→文字）</li>
-      <li>数十MB ／ 以後はブラウザにキャッシュされ再DLなし</li>
+      <li data-ja="提供元：<b>Hugging Face</b>（世界標準の公開AIモデル配布サイト）" data-en="Source: <b>Hugging Face</b> (global open AI model hub)">提供元：<b>Hugging Face</b>（世界標準の公開AIモデル配布サイト）</li>
+      <li data-ja="内容：<b>OpenAI のオープンソース Whisper</b>（音声→文字）" data-en="Model: <b>OpenAI's open-source Whisper</b> (speech-to-text)">内容：<b>OpenAI のオープンソース Whisper</b>（音声→文字）</li>
+      <li data-ja="数十MB ／ 以後はブラウザにキャッシュされ再DLなし" data-en="~50 MB / cached in browser after first download">数十MB ／ 以後はブラウザにキャッシュされ再DLなし</li>
     </ul>
     <div class="dlBtns">
-      <button id="dlCancel" class="dlbtn">キャンセル</button>
-      <button id="dlOk" class="dlbtn primary">OK・ダウンロードして開始</button>
+      <button id="dlCancel" class="dlbtn" data-ja="キャンセル" data-en="Cancel">キャンセル</button>
+      <button id="dlOk" class="dlbtn primary" data-ja="OK・ダウンロードして開始" data-en="OK · Download &amp; Start">OK・ダウンロードして開始</button>
     </div>
   </div>
 </div>
@@ -495,7 +495,7 @@ provSel.value = localStorage.getItem('ai_provider') || 'gemini';
 function syncKeyUI(){ const c=PROVIDERS[provSel.value];
   apiKeyEl.value = aiKeys[provSel.value]||'';
   keyLink.href=c.link;
-  apiKeyEl.placeholder = c.label+' のAPIキー'+(c.cors?'':'（※ブラウザ直叩きはCORS不可な場合あり）'); }
+  apiKeyEl.placeholder = L(c.label+' のAPIキー'+(c.cors?'':'（※ブラウザ直叩きはCORS不可な場合あり）'), c.label+' API key'+(c.cors?'':' (CORS may block direct browser calls)')); }
 provSel.onchange = ()=>{ localStorage.setItem('ai_provider',provSel.value); syncKeyUI(); };
 apiKeyEl.onchange = ()=>{ aiKeys[provSel.value]=apiKeyEl.value.trim(); localStorage.setItem('ai_keys',JSON.stringify(aiKeys)); };
 syncKeyUI();
@@ -525,15 +525,15 @@ async function ensureASR(){
     const ok = await askDownloadConsent();
     if(!ok) throw new Error('cancelled');
   }
-  const pc = (p)=>{ if(p && p.status==='progress' && p.file){ const pct=Math.round(p.progress||0); interim.textContent=`🧠 モデルDL ${String(p.file).split('/').pop()} ${pct}%`; } };
-  interim.textContent='🧠 Whisper モデルを準備中…(初回のみDL・数十MB)';
+  const pc = (p)=>{ if(p && p.status==='progress' && p.file){ const pct=Math.round(p.progress||0); interim.textContent=`🧠 ${L('モデルDL','Model DL')} ${String(p.file).split('/').pop()} ${pct}%`; } };
+  interim.textContent=L('🧠 Whisper モデルを準備中…(初回のみDL・数十MB)','🧠 Loading Whisper model… (one-time download, ~50 MB)');
   try{
     asr = await pipeline('automatic-speech-recognition', WHISPER_MODEL, { device:'webgpu', progress_callback: pc });
-    interim.textContent='✅ モデル準備完了 (WebGPU)';
+    interim.textContent=L('✅ モデル準備完了 (WebGPU)','✅ Model ready (WebGPU)');
   }catch(e){
     console.warn('WebGPU不可→CPUで再試行', e);
     asr = await pipeline('automatic-speech-recognition', WHISPER_MODEL, { progress_callback: pc });
-    interim.textContent='✅ モデル準備完了 (CPU)';
+    interim.textContent=L('✅ モデル準備完了 (CPU)','✅ Model ready (CPU)');
   }
   localStorage.setItem('whisper_dl_ok','1'); // 次回から確認なし
   return asr;
@@ -545,7 +545,7 @@ async function onStart(){
   if(running){ stopShare(); return; }
   // 事前チェック: 画面共有が使える環境か (insecure context / 非対応ブラウザを弾く)
   if(!window.isSecureContext || !(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)){
-    alert('画面共有が使えません。\n\n● このページは「http://localhost:8000/」のように localhost か https で開いてください。\n   （IPアドレスや file:// だとブラウザが共有をブロックします）\n● デスクトップ版の Chrome / Edge が必要です。\n● CIGNAL等のアプリ内ブラウザではなく、通常のブラウザで開いてください。');
+    alert(L('画面共有が使えません。\n\n● このページは「http://localhost:8000/」のように localhost か https で開いてください。\n   （IPアドレスや file:// だとブラウザが共有をブロックします）\n● デスクトップ版の Chrome / Edge が必要です。\n● CIGNAL等のアプリ内ブラウザではなく、通常のブラウザで開いてください。','Screen sharing is unavailable.\n\n● Open this page via localhost or https (file:// is blocked by browsers).\n● Desktop Chrome / Edge required.\n● Use a regular browser, not an in-app browser.'));
     return;
   }
   // STEP 1: 音声モデルを準備 (★共有より前＝このタブがアクティブなうちに確認する。
@@ -553,14 +553,14 @@ async function onStart(){
   if(!asr){
     try{ await ensureASR(); }
     catch(e){
-      if(String(e&&(e.message||e)).includes('cancel')){ interim.textContent='モデルDLをキャンセルしました'; return; }
-      alert('音声モデルの読み込みに失敗しました: '+(e.message||e)+'\n(ネット接続/ブラウザ対応をご確認ください)'); return;
+      if(String(e&&(e.message||e)).includes('cancel')){ interim.textContent=L('モデルDLをキャンセルしました','Model download cancelled'); return; }
+      alert(L('音声モデルの読み込みに失敗しました: ','Failed to load speech model: ')+(e.message||e)+L('\n(ネット接続/ブラウザ対応をご確認ください)','\n(Check your internet connection and browser compatibility)')); return;
     }
     // 準備完了 → CTA を「開始」に変える。次のクリックでタブ選択→翻訳開始
-    if(startBig) startBig.textContent='▶ 開始';
+    if(startBig) startBig.textContent=L('▶ 開始','▶ Go');
     var _h=document.querySelector('#startPrompt .sp-hint');
-    if(_h) _h.innerHTML='✅ <b style="color:rgb(var(--ui-rgb))">準備完了</b>！押すとタブを選んで翻訳がスタートします';
-    interim.textContent='✅ モデル準備完了';
+    if(_h) _h.innerHTML=L('✅ <b style="color:rgb(var(--ui-rgb))">準備完了</b>！押すとタブを選んで翻訳がスタートします','✅ <b style="color:rgb(var(--ui-rgb))">Ready</b>! Press to pick a tab and start translating');
+    interim.textContent=L('✅ モデル準備完了','✅ Model ready');
     return; // 共有は次のクリックで (タブ選択→翻訳開始)
   }
 
@@ -579,9 +579,9 @@ async function onStart(){
     stream = await navigator.mediaDevices.getDisplayMedia(opts);
     // ★ 共有先にフォーカスを奪わせない (この呼び出し直後に同期で実行する必要あり)
     if(controller){ try{ controller.setFocusBehavior('no-focus-change'); }catch(e){} }
-  }catch(e){ alert('共有がキャンセルされました: '+(e.message||e)); return; }
+  }catch(e){ alert(L('共有がキャンセルされました: ','Sharing was cancelled: ')+(e.message||e)); return; }
   const aTracks = stream.getAudioTracks();
-  if(!aTracks.length){ alert('音声が共有されていません。\n「タブの音声も共有」にチェックして、もう一度共有してください。'); stream.getTracks().forEach(t=>t.stop()); return; }
+  if(!aTracks.length){ alert(L('音声が共有されていません。\n「タブの音声も共有」にチェックして、もう一度共有してください。','No audio shared.\nCheck "Share tab audio" and try again.')); stream.getTracks().forEach(t=>t.stop()); return; }
 
   vid.srcObject = stream; vid.style.display='block'; vidHint.style.display='none';
   stream.getVideoTracks()[0].addEventListener('ended', stopShare); // 共有停止検知
@@ -597,8 +597,8 @@ async function onStart(){
   running=true; appEl.classList.add('live'); liveDot.classList.add('on'); startMs=Date.now(); wave.style.display='flex';
   startBtn.textContent='⏹ STOP'; startBtn.style.background='#e74c3c'; startBtn.style.color='#fff';
   interim.textContent = (localStorage.getItem('silent_mode')==='1')
-    ? '🔇 音無し翻訳MODE ON ※PCの音量０でも翻訳継続できます'
-    : '🔊 取り込み中… (音が鳴れば字幕が出ます)';
+    ? L('🔇 音無し翻訳MODE ON ※PCの音量０でも翻訳継続できます','🔇 Silent Mode ON — translates even at zero volume')
+    : L('🔊 取り込み中… (音が鳴れば字幕が出ます)','🔊 Capturing… (captions appear when audio plays)');
 }
 startBtn.onclick = onStart;
 const startBig = document.getElementById('startBig'); if(startBig) startBig.onclick = onStart;
@@ -612,17 +612,32 @@ splitH.onpointerup=e=>{ splitDrag=false; splitH.classList.remove('drag'); appEl.
 
 // ランディングの表示言語 (JP/EN)
 const langToggle=document.getElementById('langToggle');
+let uiLang='ja';
 function setLang(lang){
+  uiLang=lang;
   document.querySelectorAll('[data-ja]').forEach(el=>{
-    const v = (lang==='en') ? (el.getAttribute('data-en')||el.getAttribute('data-ja')) : el.getAttribute('data-ja');
-    el.innerHTML = v;
+    if(el.tagName==='OPTION'){
+      const v = (lang==='en') ? (el.getAttribute('data-en')||el.getAttribute('data-ja')) : el.getAttribute('data-ja');
+      el.textContent = v;
+    } else {
+      const v = (lang==='en') ? (el.getAttribute('data-en')||el.getAttribute('data-ja')) : el.getAttribute('data-ja');
+      el.innerHTML = v;
+    }
+  });
+  document.querySelectorAll('[data-ja-ph]').forEach(el=>{
+    el.placeholder = (lang==='en') ? (el.getAttribute('data-en-ph')||el.getAttribute('data-ja-ph')) : el.getAttribute('data-ja-ph');
+  });
+  document.querySelectorAll('[data-ja-title]').forEach(el=>{
+    el.title = (lang==='en') ? (el.getAttribute('data-en-title')||el.getAttribute('data-ja-title')) : el.getAttribute('data-ja-title');
   });
   langToggle.querySelectorAll('button').forEach(b=> b.classList.toggle('on', b.dataset.lang===lang));
   document.documentElement.lang = (lang==='en') ? 'en' : 'ja';
   // 翻訳の出力言語(訳先)にも反映
   if(toSel && (lang==='ja'||lang==='en')){ toSel.value=lang; if(typeof updateMeta==='function') updateMeta(); }
+  if(typeof syncKeyUI==='function') syncKeyUI();
   localStorage.setItem('lp_lang', lang);
 }
+function L(ja,en){ return uiLang==='en'?en:ja; }
 langToggle.querySelectorAll('button').forEach(b=> b.onclick=()=>setLang(b.dataset.lang));
 setLang(localStorage.getItem('lp_lang') || 'ja');
 
@@ -639,8 +654,8 @@ function setSilent(on){
   if(chSilent) chSilent.classList.toggle('on', on);
   try{ if(vid) vid.muted=true; }catch(e){} // アプリ側は常に無音
   if(running) interim.textContent = on
-    ? '🔇 音無し翻訳MODE ON ※PCの音量０でも翻訳継続できます'
-    : '🔊 取り込み中… (音が鳴れば字幕が出ます)';
+    ? L('🔇 音無し翻訳MODE ON ※PCの音量０でも翻訳継続できます','🔇 Silent Mode ON — translates even at zero volume')
+    : L('🔊 取り込み中… (音が鳴れば字幕が出ます)','🔊 Capturing… (captions appear when audio plays)');
 }
 if(chSilent) chSilent.onclick=()=> setSilent(!chSilent.classList.contains('on'));
 setSilent(localStorage.getItem('silent_mode')==='1');
@@ -649,15 +664,15 @@ function stopShare(){
   running=false; appEl.classList.remove('live'); liveDot.classList.remove('on'); wave.style.display='none';
   startBtn.textContent='▶ START'; startBtn.style.background=''; startBtn.style.color='';
   // CTA を元に戻す (モデルが準備済みなら次回は1クリックで共有)
-  if(startBig) startBig.textContent = asr ? '▶ 開始' : '▶ 始める';
+  if(startBig) startBig.textContent = asr ? L('▶ 開始','▶ Go') : L('▶ 始める','▶ Start');
   var _h=document.querySelector('#startPrompt .sp-hint');
-  if(_h) _h.innerHTML = asr ? '押すとタブを選んで翻訳がスタートします' : '押すとタブ共有で字幕がスタート<br><span style="opacity:.65">言語は右上で設定 ・ 初回のみモデルを安全にDL</span>';
+  if(_h) _h.innerHTML = asr ? L('押すとタブを選んで翻訳がスタートします','Press to pick a tab and start translating') : L('押すとタブ共有で字幕がスタート<br><span style="opacity:.65">言語は右上で設定 ・ 初回のみモデルを安全にDL</span>','Press to share a tab and start captions<br><span style="opacity:.65">Set language top-right · Model downloads once on first use</span>');
   clearTimeout(autoTimer);
   try{ proc&&(proc.onaudioprocess=null); srcNode&&srcNode.disconnect(); proc&&proc.disconnect(); }catch(e){}
   try{ audioCtx&&audioCtx.close(); }catch(e){}
   if(vid.srcObject){ vid.srcObject.getTracks().forEach(t=>t.stop()); vid.srcObject=null; }
   vid.style.display='none'; vidHint.style.display='block';
-  interim.textContent='停止しました';
+  interim.textContent=L('停止しました','Stopped');
 }
 
 // ===== VAD (CIGNAL の Rust 実装を JS 移植) =====
@@ -706,14 +721,14 @@ async function transcribe(seg){
     try{
       const lang=fromSel.value, opt={ task:'transcribe' };
       if(lang!=='auto' && LANG_FULL[lang]) opt.language=LANG_FULL[lang];
-      if(running) interim.textContent='🧠 認識中…';
+      if(running) interim.textContent=L('🧠 認識中…','🧠 Recognizing…');
       const out=await asr(s, opt);
       const t=clean(out.text);
       if(t) addPair(t);
     }catch(e){ console.warn('ASR error', e); }
   }
   sttBusy=false;
-  if(running) interim.textContent='🔊 取り込み中…';
+  if(running) interim.textContent=L('🔊 取り込み中…','🔊 Capturing…');
 }
 function clean(s){ const t=(s||'').trim(); const low=t.toLowerCase();
   const junk=['[blank_audio]','(silence)','[silence]','[music]','(music)','you','thank you.','thanks for watching!'];
@@ -729,7 +744,7 @@ function addPair(text){
   const dst=line.querySelector('.dst');           // 右: 訳(日本語)
   feed.appendChild(line); sync();
   translate(text).then(x=>{ dst.textContent=x||text; sync(); })
-                 .catch(()=>{ dst.textContent='(翻訳失敗・原文表示)'; dst.style.color='#e0a030'; });
+                 .catch(()=>{ dst.textContent=L('(翻訳失敗・原文表示)','(Translation failed — showing original)'); dst.style.color='#e0a030'; });
   maybeAuto();
 }
 function sync(){ feed.scrollTop=feed.scrollHeight; }
@@ -750,7 +765,7 @@ async function translate(text){
 
 // ===== 整文 / 要約 (ローリング) =====
 // (整形コントロールはフィード下のチップに一本化。labels() は廃止)
-function renderSum(){ if(summary) refBody.textContent=summary; else refBody.innerHTML='<span class="muted">必要な時だけ。「整える/要約」かAUTOで生成。AIキーが無くても、上の 📋 で字幕をコピーして普段使いのAIに貼り付けて要約してもOK。</span>'; }
+function renderSum(){ if(summary) refBody.textContent=summary; else refBody.innerHTML='<span class="muted">'+L('必要な時だけ。「整える/要約」かAUTOで生成。AIキーが無くても、上の 📋 で字幕をコピーして普段使いのAIに貼り付けて要約してもOK。','Optional. Use "Refine/Summarize" or AUTO to generate. Even without an AI key, copy captions with 📋 above and paste into your usual AI.')+'</span>'; }
 function flash(msg,c){ refBody.innerHTML=`<span style="color:${c||'#e0a030'};font-size:11px">${msg}</span>`; setTimeout(()=>{ if(!busy) renderSum(); },2400); }
 function maybeAuto(){ if(!auto||busy) return; if(orig.length-sumIdx<AUTO_THRESHOLD) return;
   clearTimeout(autoTimer); autoTimer=setTimeout(()=>{ if(auto&&!busy) doRefine(); },1500); }
@@ -758,9 +773,9 @@ function maybeAuto(){ if(!auto||busy) return; if(orig.length-sumIdx<AUTO_THRESHO
 async function doRefine(manual){
   if(busy) return;
   const newLines=orig.slice(sumIdx);
-  if(!newLines.length){ if(manual) flash('新規の発話がありません'); return; }
-  if(!currentKey()){ flash('AIキーを入力してください（プロバイダーを選んでキー設定）', '#e74c3c'); return; }
-  busy=true; chShori.style.opacity=chYoyaku.style.opacity='.45'; refBody.innerHTML='<span class="muted">生成中…</span>';
+  if(!newLines.length){ if(manual) flash(L('新規の発話がありません','No new speech to process')); return; }
+  if(!currentKey()){ flash(L('AIキーを入力してください（プロバイダーを選んでキー設定）','Please enter an AI key (select a provider and set the key)'), '#e74c3c'); return; }
+  busy=true; chShori.style.opacity=chYoyaku.style.opacity='.45'; refBody.innerHTML='<span class="muted">'+L('生成中…','Generating…')+'</span>';
   const ln=LANG_NAME[toSel.value]||'日本語'; const target=orig.length; const had=summary||'(なし)';
   let prompt;
   if(mode==='prose'){
@@ -769,7 +784,7 @@ async function doRefine(manual){
     prompt=`以下はライブ音声の文字起こし。これまでの要約に新規を統合し累積要約に更新。出力は${ln}で簡潔な箇条書き(・)のみ。前置き不要、重複は1つに。\n\n【これまでの要約】\n${had}\n\n【新しい文字起こし】\n${newLines.join('\n')}`;
   }
   try{ const r=await AI(prompt); summary=r; sumIdx=target; renderSum(); refBody.scrollTop=0; }
-  catch(e){ flash('生成失敗: '+e, '#e74c3c'); }
+  catch(e){ flash(L('生成失敗: ','Generation failed: ')+e, '#e74c3c'); }
   finally{ busy=false; chShori.style.opacity=chYoyaku.style.opacity=''; }
 }
 
@@ -788,7 +803,7 @@ refDrag.onpointerup=e=>{ drag=false; refDrag.firstChild.style.background='var(--
 applyOpen();
 
 // 言語ヘッダー / スワップ / コピー
-function updateMeta(){ chL.textContent=(fromSel.value==='auto')?'原文(自動)':(LANG_NAME[fromSel.value]||fromSel.value); chR.textContent=LANG_NAME[toSel.value]||toSel.value; chTrans.textContent='翻訳 '+toSel.value.toUpperCase(); }
+function updateMeta(){ chL.textContent=(fromSel.value==='auto')?L('原文(自動)','Source (auto)'):(LANG_NAME[fromSel.value]||fromSel.value); chR.textContent=LANG_NAME[toSel.value]||toSel.value; chTrans.textContent=L('翻訳 ','Translate ')+toSel.value.toUpperCase(); }
 fromSel.onchange=updateMeta; toSel.onchange=updateMeta; updateMeta();
 swapBtn.onclick=()=>{ if(fromSel.value==='auto') return; const f=fromSel.value,t=toSel.value; fromSel.value=t; toSel.value=f; updateMeta(); };
 cpyAll.onclick=()=>{ const t=[...feed.querySelectorAll('.dst')].map(l=>l.textContent.trim()).filter(Boolean).join('\n'); if(t) navigator.clipboard.writeText(t); };
