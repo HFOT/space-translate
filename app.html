@@ -357,7 +357,7 @@
     <div id="rHead">
       <span class="dot" id="liveDot"></span>
       <b style="font-size:12px;color:var(--tx2)">LIVE</b>
-      <button class="btn" id="chSilent" title="※PCの音量０でも翻訳継続できます（共有タブをミュートしてもOK）" style="padding:5px 11px;font-size:12px;margin-left:6px">🔇 音無し翻訳MODE</button>
+      <button class="btn" id="chSilent" title="※PCの音量０でも翻訳継続できます（共有タブをミュートしてもOK）" style="padding:5px 11px;font-size:12px;margin-left:6px" data-ja="🔇 音無し翻訳MODE" data-en="🔇 Silent Mode">🔇 音無し翻訳MODE</button>
       <span class="sp"></span>
       <select id="fromSel" title="音声(原文)の言語">
         <option value="auto">自動判定</option><option value="en" selected>英語 EN</option><option value="ja">日本語 JP</option>
@@ -380,10 +380,10 @@
       <div class="bigwave" id="wave" aria-hidden="true"></div>
       <div id="feed"></div>
       <div class="feed-foot">
-        <span class="chip on">● 字幕</span>
+        <span class="chip on" data-ja="● 字幕" data-en="● Captions">● 字幕</span>
         <span class="chip" id="chTrans">翻訳 JA</span>
-        <span class="chip act" id="chShori" title="読みやすい文章に整える">整える</span>
-        <span class="chip act" id="chYoyaku" title="箇条書きで要約">要約</span>
+        <span class="chip act" id="chShori" title="読みやすい文章に整える" data-ja="整える" data-en="Refine">整える</span>
+        <span class="chip act" id="chYoyaku" title="箇条書きで要約" data-ja="要約" data-en="Summarize">要約</span>
         <span class="chip act" id="chAuto" title="一定量たまったら自動生成">AUTO</span>
       </div>
       <div id="startPrompt">
@@ -398,13 +398,13 @@
     <div id="refine">
       <div id="refDrag"><div></div></div>
       <div id="refHead">
-        <span class="t" id="refTitle">📋 整形結果</span>
+        <span class="t" id="refTitle" data-ja="📋 整形結果" data-en="📋 Result">📋 整形結果</span>
         <span class="sp"></span>
         <button class="cpy" id="cpyRefine" title="結果をコピー">📋</button>
         <button class="btn" id="refCol" title="下段の開閉" style="border:none;background:transparent;color:var(--tx3);font-size:15px">▾</button>
       </div>
       <div id="keyBar">
-        <span>AI(整形/要約のみ):</span>
+        <span data-ja="AI(整形/要約のみ):" data-en="AI (refine/summary only):">AI(整形/要約のみ):</span>
         <select id="provSel">
           <option value="gemini">Gemini</option>
           <option value="groq">Groq</option>
@@ -619,6 +619,8 @@ function setLang(lang){
   });
   langToggle.querySelectorAll('button').forEach(b=> b.classList.toggle('on', b.dataset.lang===lang));
   document.documentElement.lang = (lang==='en') ? 'en' : 'ja';
+  // 翻訳の出力言語(訳先)にも反映
+  if(toSel && (lang==='ja'||lang==='en')){ toSel.value=lang; if(typeof updateMeta==='function') updateMeta(); }
   localStorage.setItem('lp_lang', lang);
 }
 langToggle.querySelectorAll('button').forEach(b=> b.onclick=()=>setLang(b.dataset.lang));
