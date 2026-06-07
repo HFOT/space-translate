@@ -298,7 +298,7 @@
   .dp-tt{flex:1;min-width:0;font-size:9px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .dp-livedot{font-size:7.5px;font-weight:700;letter-spacing:.5px;color:#ff5f56;white-space:nowrap}
   .dp-tabbody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px}
-  .dp-av{font-size:26px;filter:drop-shadow(0 3px 10px rgba(99,102,241,.55))}
+  .dp-shr{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--tx2);font-family:var(--mono);padding:5px 13px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.05)}
   .dp-bars{display:flex;align-items:flex-end;gap:3px;height:30px}
   .dp-bars i{width:3px;height:100%;background:linear-gradient(rgb(var(--ui-rgb)),#a855f7);border-radius:2px;transform:scaleY(.25);transform-origin:bottom;animation:wv 1s ease-in-out infinite}
   .dp-bars i:nth-child(2n){animation-duration:.8s}.dp-bars i:nth-child(3n){animation-duration:1.2s}
@@ -488,7 +488,7 @@
               <div class="dp-srctab">
                 <div class="dp-tabtop"><span class="dp-fav">𝕏</span><span class="dp-tt">English Tech Space</span><span class="dp-livedot">●&nbsp;LIVE</span></div>
                 <div class="dp-tabbody">
-                  <span class="dp-av">🎙</span>
+                  <span class="dp-shr"></span>
                   <div class="dp-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
                 </div>
               </div>
@@ -937,7 +937,7 @@ chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) ma
   const dialog=root.querySelector('.dp-dialog'), row=root.querySelector('.dp-row'), share=root.querySelector('.dp-share');
   const feed=root.querySelector('.dp-feed'), cursor=root.querySelector('.dp-cursor'), label=root.querySelector('.dp-label');
   const live=root.querySelector('.dp-live');
-  const srcName=root.querySelector('.dp-tt'), rowName=root.querySelector('.dp-rt'), headSpans=root.querySelectorAll('.dp-fhead2 span');
+  const srcName=root.querySelector('.dp-tt'), rowName=root.querySelector('.dp-rt'), headSpans=root.querySelectorAll('.dp-fhead2 span'), shr=root.querySelector('.dp-shr');
   // 日英両方を保持。表示言語で原文/訳の向きを切替 (JP表示=EN→JP / EN表示=JP→EN)
   const LINES=[
     {en:"Welcome everyone to today's space.", ja:"本日のスペースへようこそ。"},
@@ -967,6 +967,7 @@ chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) ma
     srcName.textContent=tabName; rowName.textContent=tabName;
     headSpans[0].textContent = en?'日本語':'English';
     headSpans[1].textContent = en?'English':'日本語';
+    shr.textContent = en?'Screen share':'画面共有';
     // ① スタート
     setLabel('s1'); label.classList.add('show'); start.classList.add('show');
     await sleep(450); cursor.classList.add('show'); moveCursor(btn);
