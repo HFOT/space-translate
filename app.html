@@ -146,6 +146,7 @@
   .btn:hover{border-color:rgb(var(--ui-rgb))}
   .btn.primary{border:none;background:var(--grad);color:#fff;font-weight:700}
   .btn.on{border-color:rgb(var(--ui-rgb));background:rgba(var(--ui-rgb),.3);color:#fff;font-weight:700}
+  #chSilent.on{border-color:rgb(var(--ui-rgb));background:rgba(var(--ui-rgb),.18);color:var(--tx)}
   .lbl{font-size:11px;color:var(--tx3);white-space:nowrap}
   .cpy{border:none;background:transparent;color:var(--tx3);cursor:pointer;font-size:12px;opacity:.6;padding:0 2px}
   .cpy:hover{opacity:1}
@@ -356,6 +357,7 @@
     <div id="rHead">
       <span class="dot" id="liveDot"></span>
       <b style="font-size:12px;color:var(--tx2)">LIVE</b>
+      <button class="btn" id="chSilent" title="Space登壇者向け。ON＋共有タブ(or PC)をミュートで、音は消えても字幕は動き続けます。" style="padding:5px 11px;font-size:12px;margin-left:6px">🔇 音なし</button>
       <span class="sp"></span>
       <select id="fromSel" title="音声(原文)の言語">
         <option value="auto">自動判定</option><option value="en" selected>英語 EN</option><option value="ja">日本語 JP</option>
@@ -383,15 +385,11 @@
         <span class="chip act" id="chShori" title="読みやすい文章に整える">整える</span>
         <span class="chip act" id="chYoyaku" title="箇条書きで要約">要約</span>
         <span class="chip act" id="chAuto" title="一定量たまったら自動生成">AUTO</span>
-        <span class="chip act" id="chSilent" title="Space登壇者向け。共有タブ/PCをミュートしても字幕は動き続けます。">🔇 音なし</span>
       </div>
       <div id="startPrompt">
         <svg class="sp-logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="url(#sgrad)"/><g fill="#fff"><rect x="9.6" y="17" width="2.8" height="6" rx="1.4"/><rect x="15" y="12" width="2.8" height="16" rx="1.4"/><rect x="20.4" y="15" width="2.8" height="10" rx="1.4"/><rect x="25.8" y="10.5" width="2.8" height="19" rx="1.4"/></g></svg>
         <button class="btn primary" id="startBig">▶ 始める</button>
         <div class="sp-hint">押すとタブ共有で字幕がスタート<br><span style="opacity:.65">言語は右上で設定 ・ 初回のみモデルを安全にDL</span></div>
-        <label id="silentToggle" title="Space に登壇しながらスマホで聴き、PCは音を切って字幕だけ見られます。PCの音量を切るか、共有タブをミュートしてください（タブ音声は内部で直接取得するので字幕は動き続けます）。">
-          <input type="checkbox" id="silentChk"> 🔇 音なし翻訳モード <span style="opacity:.6">（登壇者向け・PCミュートでも字幕）</span>
-        </label>
       </div>
     </div>
     <div id="interim">準備中… モデルは初回のみ自動ダウンロード</div>
@@ -598,8 +596,8 @@ async function onStart(){
 
   running=true; appEl.classList.add('live'); liveDot.classList.add('on'); startMs=Date.now(); wave.style.display='flex';
   startBtn.textContent='⏹ STOP'; startBtn.style.background='#e74c3c'; startBtn.style.color='#fff';
-  interim.textContent = (silentChk && silentChk.checked)
-    ? '🔇 音なしモード — PCをミュートしてOK。字幕は内部で動き続けます'
+  interim.textContent = (localStorage.getItem('silent_mode')==='1')
+    ? '🔇 音なしモード ON — 共有タブ/PC をミュートしてOK（字幕は動き続けます）'
     : '🔊 取り込み中… (音が鳴れば字幕が出ます)';
 }
 startBtn.onclick = onStart;
@@ -632,18 +630,16 @@ function setTheme(t){ document.documentElement.setAttribute('data-theme', t); th
 themeToggle.onclick=()=> setTheme(document.documentElement.getAttribute('data-theme')==='light' ? 'dark' : 'light');
 setTheme(localStorage.getItem('lp_theme') || 'dark');
 
-// 音なし翻訳モード (登壇者向け: PCミュートでも字幕)。スタート画面とフィードの両方で操作
-const silentChk=document.getElementById('silentChk'), chSilent=document.getElementById('chSilent');
+// 音なし翻訳モード (登壇者向け: PCミュートでも字幕)。翻訳画面の上部ボタンで操作
+const chSilent=document.getElementById('chSilent');
 function setSilent(on){
   localStorage.setItem('silent_mode', on?'1':'0');
-  if(silentChk) silentChk.checked=on;
   if(chSilent) chSilent.classList.toggle('on', on);
   try{ if(vid) vid.muted=true; }catch(e){} // アプリ側は常に無音
   if(running) interim.textContent = on
     ? '🔇 音なしモード ON — 共有タブ/PC をミュートしてOK（字幕は内部で動き続けます）'
     : '🔊 取り込み中… (音が鳴れば字幕が出ます)';
 }
-if(silentChk) silentChk.onchange=()=> setSilent(silentChk.checked);
 if(chSilent) chSilent.onclick=()=> setSilent(!chSilent.classList.contains('on'));
 setSilent(localStorage.getItem('silent_mode')==='1');
 
