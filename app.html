@@ -636,8 +636,9 @@ function setLang(lang){
   });
   langToggle.querySelectorAll('button').forEach(b=> b.classList.toggle('on', b.dataset.lang===lang));
   document.documentElement.lang = (lang==='en') ? 'en' : 'ja';
-  // 表示言語に応じて翻訳の言語ペアを既定化 (EN表示=EN→JP / JP表示=EN→JP)
-  if(lang==='en'){ if(fromSel) fromSel.value='en'; if(toSel) toSel.value='ja'; }
+  // 表示言語=出力言語とし、入力はその逆に既定化 (EN表示=JP→EN / JP表示=EN→JP)
+  if(lang==='en'){ if(fromSel) fromSel.value='ja'; if(toSel) toSel.value='en'; }
+  else if(lang==='ja'){ if(fromSel) fromSel.value='en'; if(toSel) toSel.value='ja'; }
   if(typeof updateMeta==='function') updateMeta();
   if(typeof syncKeyUI==='function') syncKeyUI();
   localStorage.setItem('lp_lang', lang);
