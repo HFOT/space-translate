@@ -63,6 +63,18 @@
   .lp-brand .live::before{content:"";width:6px;height:6px;border-radius:50%;background:rgb(var(--ui-rgb));box-shadow:0 0 8px rgb(var(--ui-rgb));animation:lpulse 1.6s infinite}
   @keyframes lpulse{50%{opacity:.3}}
   .lp-eyebrow2{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--tx3);text-transform:uppercase;margin-bottom:14px}
+  /* モデルDL 同意モーダル (ネイティブconfirmの代わり) */
+  #dlConsent{display:none;position:fixed;inset:0;z-index:2000;background:rgba(2,6,8,.74);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:22px;font-family:var(--mono)}
+  .dlBox{max-width:450px;width:100%;background:#0a1414;border:1px solid var(--border);border-radius:18px;padding:26px 26px 22px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+  .dlBox .dlIcon{font-size:30px}
+  .dlBox h3{margin:10px 0 8px;font-size:18px;color:var(--tx)}
+  .dlBox p{margin:0 0 14px;color:var(--tx2);font-size:13.5px;line-height:1.7}
+  .dlBox ul{margin:0 0 20px;padding-left:18px;color:var(--tx2);font-size:13px;line-height:1.85}
+  .dlBox b{color:var(--tx)}
+  .dlBtns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  .dlbtn{font-family:var(--mono);font-size:13px;border-radius:9px;padding:10px 16px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--tx2)}
+  .dlbtn:hover{border-color:rgb(var(--ui-rgb));color:var(--tx)}
+  .dlbtn.primary{border:none;background:rgb(var(--ui-rgb));color:#04221d;font-weight:700}
 
   /* 右: 翻訳 + 整文 */
   #right{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -254,6 +266,7 @@
           <div class="lp-step"><span class="lp-n">3</span><span>そのタブを選び <b>「タブの音声も共有」</b>にチェック</span></div>
         </div>
         <div class="lp-feats">
+          <span class="lp-chip">🔒 すべてブラウザ内で完結</span>
           <span class="lp-chip">🎧 ヘッドフォンOK</span>
           <span class="lp-chip">🆓 文字起こし・翻訳は無料</span>
           <span class="lp-chip">📋 整える / 要約</span>
@@ -322,6 +335,24 @@
         <a id="keyLink" href="#" target="_blank" rel="noopener">キー取得</a>
       </div>
       <div id="refBody"><span class="muted">必要な時だけ。「整える/要約」かAUTOで生成（整文＝読みやすい文章 / 要約＝箇条書き）。AIキーが無くても、上の 📋 で字幕をコピーして普段使いのAIに貼り付けて要約してもOK。</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- モデルDL 同意モーダル (ページ内OKボタン。デザイン統一＆非アクティブでも確実) -->
+<div id="dlConsent" aria-modal="true">
+  <div class="dlBox">
+    <div class="dlIcon">🔒</div>
+    <h3>初回だけ、音声モデルを取得します</h3>
+    <p>すべて<b>あなたのブラウザ内だけで完結</b>します。音声は外部に送信されません。</p>
+    <ul>
+      <li>提供元：<b>Hugging Face</b>（世界標準の公開AIモデル配布サイト）</li>
+      <li>内容：<b>OpenAI のオープンソース Whisper</b>（音声→文字）</li>
+      <li>約150MB ／ 以後はブラウザにキャッシュされ再DLなし</li>
+    </ul>
+    <div class="dlBtns">
+      <button id="dlCancel" class="dlbtn">キャンセル</button>
+      <button id="dlOk" class="dlbtn primary">OK・ダウンロードして開始</button>
     </div>
   </div>
 </div>
@@ -396,13 +427,22 @@ const orig=[];               // 原文の蓄積
 let sumIdx=0, summary='', mode='prose', refLang='ja', auto=false, busy=false, autoTimer=null;
 
 // ===== Whisper ロード =====
+// モデルDL 同意 (ページ内モーダルで OK/キャンセル)
+function askDownloadConsent(){
+  return new Promise(resolve=>{
+    const m=document.getElementById('dlConsent');
+    const ok=document.getElementById('dlOk'), cancel=document.getElementById('dlCancel');
+    m.style.display='flex';
+    const done=(v)=>{ m.style.display='none'; ok.onclick=cancel.onclick=null; resolve(v); };
+    ok.onclick=()=>done(true); cancel.onclick=()=>done(false);
+  });
+}
 async function ensureASR(){
   if(asr) return asr;
   // 初回のみ: モデルDLの確認 (以後はブラウザにキャッシュされるので確認しない)
   if(!localStorage.getItem('whisper_dl_ok')){
-    if(!confirm('初回のみ、音声認識モデルを安全にダウンロードします。\n\n● 提供元：Hugging Face（世界標準の公開AIモデル配布サイト）\n● 内容：OpenAI のオープンソース音声認識モデル Whisper（'+WHISPER_MODEL+'）\n● 約150MB／以後はブラウザにキャッシュされ再ダウンロードなし\n● 音声はこの端末内だけで処理され、外部には送信されません\n\nダウンロードして開始しますか？')){
-      throw new Error('cancelled');
-    }
+    const ok = await askDownloadConsent();
+    if(!ok) throw new Error('cancelled');
   }
   const pc = (p)=>{ if(p && p.status==='progress' && p.file){ const pct=Math.round(p.progress||0); interim.textContent=`🧠 モデルDL ${String(p.file).split('/').pop()} ${pct}%`; } };
   interim.textContent='🧠 Whisper モデルを準備中…(初回のみDL・数十MB)';
