@@ -106,6 +106,11 @@
   #app:not(.live) #startPrompt{display:flex}
   #app:not(.live) #feedMeta,#app:not(.live) .bigwave,#app:not(.live) #feed,#app:not(.live) .feed-foot,#app:not(.live) #refine{display:none}
   #app:not(.live) #startBtn{display:none}
+  /* 表示言語トグル (JP/EN) */
+  #langToggle{position:absolute;top:14px;right:14px;z-index:7;display:inline-flex;gap:2px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:980px;padding:3px}
+  #langToggle button{border:none;background:transparent;color:var(--tx3);font-size:11px;font-weight:700;font-family:var(--mono);padding:5px 12px;border-radius:980px;cursor:pointer;transition:.15s}
+  #langToggle button.on{background:rgb(var(--ui-rgb));color:#04221d}
+  #app.live #langToggle{display:none}
   #rHead{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
   .dot{width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0}
   .dot.on{background:rgb(var(--ui-rgb));box-shadow:0 0 8px rgb(var(--ui-rgb))}
@@ -279,6 +284,10 @@
   <!-- 左: 共有タブ -->
   <div id="left">
     <div class="left-bg" aria-hidden="true"><span class="glow"></span><span class="grid"></span></div>
+    <div id="langToggle" aria-label="表示言語">
+      <button data-lang="ja" class="on">日本語</button>
+      <button data-lang="en">EN</button>
+    </div>
     <div id="vidWrap">
       <div id="vidHint">
         <div class="lp-brand">
@@ -286,22 +295,22 @@
           <b>Space Translate</b><span class="live">LIVE</span>
         </div>
         <div class="lp-eyebrow2">Real-time Speech Captioning</div>
-        <h2 class="lp-h1">聞こえた声を、<br><span class="u">読める言葉に。</span></h2>
-        <p class="lp-sub">Xスペースや動画の声を、その場で字幕化して翻訳。<br>AIが断片を読みやすい文章にも整えます。</p>
+        <h2 class="lp-h1" data-ja="聞こえた声を、<br><span class=&quot;u&quot;>読める言葉に。</span>" data-en="What you hear,<br><span class=&quot;u&quot;>made readable.</span>">聞こえた声を、<br><span class="u">読める言葉に。</span></h2>
+        <p class="lp-sub" data-ja="Xスペースや動画の声を、その場で字幕化して翻訳。<br>AIが断片を読みやすい文章にも整えます。" data-en="Caption &amp; translate any tab's audio — X Spaces, videos, talks.<br>AI also smooths fragments into readable prose.">Xスペースや動画の声を、その場で字幕化して翻訳。<br>AIが断片を読みやすい文章にも整えます。</p>
         <div class="lp-flow">
-          <div class="lp-fstep"><div class="lp-fnum">1</div><div class="lp-ft">別タブで開く</div><div class="lp-fd">翻訳したいサイトを<br>別のタブで表示</div></div>
-          <div class="lp-fstep"><div class="lp-fnum">2</div><div class="lp-ft">始める を押す</div><div class="lp-fd">初回はモデルDL →<br>「開始」に変わる</div></div>
-          <div class="lp-fstep"><div class="lp-fnum">3</div><div class="lp-ft">開始 → 共有</div><div class="lp-fd">タブを選び<br>「音声も共有」</div></div>
+          <div class="lp-fstep"><div class="lp-fnum">1</div><div class="lp-ft" data-ja="別タブで開く" data-en="Open a tab">別タブで開く</div><div class="lp-fd" data-ja="翻訳したいサイトを<br>別のタブで表示" data-en="Open the page<br>you want, in a tab">翻訳したいサイトを<br>別のタブで表示</div></div>
+          <div class="lp-fstep"><div class="lp-fnum">2</div><div class="lp-ft" data-ja="始める を押す" data-en="Press Start">始める を押す</div><div class="lp-fd" data-ja="初回はモデルDL →<br>「開始」に変わる" data-en="First run loads<br>the model">初回はモデルDL →<br>「開始」に変わる</div></div>
+          <div class="lp-fstep"><div class="lp-fnum">3</div><div class="lp-ft" data-ja="開始 → 共有" data-en="Share + go">開始 → 共有</div><div class="lp-fd" data-ja="タブを選び<br>「音声も共有」" data-en="Pick the tab,<br>share its audio">タブを選び<br>「音声も共有」</div></div>
         </div>
         <div class="lp-trust">
-          <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M8.5 1l6 2.5v4c0 3.6-2.4 6.4-6 7.5-3.6-1.1-6-3.9-6-7.5v-4L8.5 1z" stroke="currentColor" stroke-width="1.5"/><path d="M6 8.5l2 2 3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 音声はブラウザ内で処理</span>
-          <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> APIキー登録なし</span>
-          <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> 文字起こし・翻訳は無料</span>
-          <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> ヘッドフォンでもOK</span>
-          <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> インストール不要</span>
+          <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M8.5 1l6 2.5v4c0 3.6-2.4 6.4-6 7.5-3.6-1.1-6-3.9-6-7.5v-4L8.5 1z" stroke="currentColor" stroke-width="1.5"/><path d="M6 8.5l2 2 3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> <span data-ja="音声はブラウザ内で処理" data-en="Audio runs in-browser">音声はブラウザ内で処理</span></span>
+          <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> <span data-ja="APIキー登録なし" data-en="No API key">APIキー登録なし</span></span>
+          <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> <span data-ja="文字起こし・翻訳は無料" data-en="Free transcribe &amp; translate">文字起こし・翻訳は無料</span></span>
+          <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> <span data-ja="ヘッドフォンでもOK" data-en="Works with headphones">ヘッドフォンでもOK</span></span>
+          <span class="it"><svg viewBox="0 0 17 17" width="15" height="15" fill="none"><path d="M3 8.5l3.5 3.5L14 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> <span data-ja="インストール不要" data-en="No install">インストール不要</span></span>
         </div>
-        <div class="lp-tip"><b>📋 整える / 要約</b>は任意。<b>自分のAPIキー</b>を繋いでアプリ内で処理、または<b>字幕をコピーして普段使いのAI</b>（ChatGPT等）に要約してもらってもOK。</div>
-        <div class="lp-note">🔒 音声は端末内だけで処理／音声モデルは Hugging Face の公開 Whisper を初回のみ取得<br>Chrome / Edge 推奨・Mac はタブ音声のみ</div>
+        <div class="lp-tip" data-ja="<b>📋 整える / 要約</b>は任意。<b>自分のAPIキー</b>を繋いでアプリ内で処理、または<b>字幕をコピーして普段使いのAI</b>（ChatGPT等）に要約してもらってもOK。" data-en="<b>📋 Refine / Summarize</b> is optional. Use <b>your own API key</b> in-app, or just <b>copy the captions into your usual AI</b> (ChatGPT, etc.)."><b>📋 整える / 要約</b>は任意。<b>自分のAPIキー</b>を繋いでアプリ内で処理、または<b>字幕をコピーして普段使いのAI</b>（ChatGPT等）に要約してもらってもOK。</div>
+        <div class="lp-note" data-ja="🔒 音声は端末内だけで処理／音声モデルは Hugging Face の公開 Whisper を初回のみ取得<br>Chrome / Edge 推奨・Mac はタブ音声のみ" data-en="🔒 Audio stays on your device. The open-source Whisper model loads once from Hugging Face.<br>Chrome / Edge recommended · macOS captures tab audio only">🔒 音声は端末内だけで処理／音声モデルは Hugging Face の公開 Whisper を初回のみ取得<br>Chrome / Edge 推奨・Mac はタブ音声のみ</div>
       </div>
       <video id="vid" autoplay muted playsinline style="display:none"></video>
     </div>
@@ -563,6 +572,20 @@ let splitDrag=false;
 splitH.onpointerdown=e=>{ splitDrag=true; splitH.classList.add('drag'); appEl.classList.add('resizing'); try{splitH.setPointerCapture(e.pointerId);}catch(_){} e.preventDefault(); };
 splitH.onpointermove=e=>{ if(!splitDrag) return; const r=appEl.getBoundingClientRect(); let ratio=(e.clientX-r.left)/r.width; ratio=Math.max(.22,Math.min(.78,ratio)); leftEl.style.flex=ratio.toFixed(3); rightEl.style.flex=(1-ratio).toFixed(3); };
 splitH.onpointerup=e=>{ splitDrag=false; splitH.classList.remove('drag'); appEl.classList.remove('resizing'); try{splitH.releasePointerCapture(e.pointerId);}catch(_){} };
+
+// ランディングの表示言語 (JP/EN)
+const langToggle=document.getElementById('langToggle');
+function setLang(lang){
+  document.querySelectorAll('[data-ja]').forEach(el=>{
+    const v = (lang==='en') ? (el.getAttribute('data-en')||el.getAttribute('data-ja')) : el.getAttribute('data-ja');
+    el.innerHTML = v;
+  });
+  langToggle.querySelectorAll('button').forEach(b=> b.classList.toggle('on', b.dataset.lang===lang));
+  document.documentElement.lang = (lang==='en') ? 'en' : 'ja';
+  localStorage.setItem('lp_lang', lang);
+}
+langToggle.querySelectorAll('button').forEach(b=> b.onclick=()=>setLang(b.dataset.lang));
+setLang(localStorage.getItem('lp_lang') || 'ja');
 
 function stopShare(){
   running=false; appEl.classList.remove('live'); liveDot.classList.remove('on'); wave.style.display='none';
