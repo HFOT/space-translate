@@ -462,6 +462,7 @@
         <span class="chip act" id="chShori" data-ja-title="読みやすい文章に整える" data-en-title="Smooth into readable prose" data-ja="整える" data-en="Refine">整える</span>
         <span class="chip act" id="chYoyaku" data-ja-title="箇条書きで要約" data-en-title="Summarize as bullet points" data-ja="要約" data-en="Summarize">要約</span>
         <span class="chip act" id="chAuto" data-ja-title="一定量たまったら自動生成" data-en-title="Auto-generate once enough accumulates">AUTO</span>
+        <span class="chip act" id="chGloss" data-ja-title="Cardano/暗号資産の専門用語を正しい表記に補正" data-en-title="Correct Cardano/crypto jargon spelling" data-ja="📚 用語" data-en="📚 Terms">📚 用語</span>
       </div>
       <div id="startPrompt">
         <svg class="sp-logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="url(#sgrad)"/><g fill="#fff"><rect x="9.6" y="17" width="2.8" height="6" rx="1.4"/><rect x="15" y="12" width="2.8" height="16" rx="1.4"/><rect x="20.4" y="15" width="2.8" height="10" rx="1.4"/><rect x="25.8" y="10.5" width="2.8" height="19" rx="1.4"/></g></svg>
@@ -568,7 +569,7 @@ const $ = s => document.querySelector(s);
 const vid=$('#vid'), vidHint=$('#vidHint'), startBtn=$('#startBtn'), swapBtn=$('#swapBtn');
 const feed=$('#feed'), interim=$('#interim'), liveDot=$('#liveDot');
 const chL=$('#chL'), chR=$('#chR'), cpyAll=$('#cpyAll'), wave=$('#wave');
-const chTrans=$('#chTrans'), chShori=$('#chShori'), chYoyaku=$('#chYoyaku'), chAuto=$('#chAuto');
+const chTrans=$('#chTrans'), chShori=$('#chShori'), chYoyaku=$('#chYoyaku'), chAuto=$('#chAuto'), chGloss=$('#chGloss');
 // ライブ波形バー生成 + 経過時間タイムスタンプ
 for(let i=0;i<48;i++){ const b=document.createElement('i'); b.style.animationDelay=(i*0.04).toFixed(2)+'s'; b.style.animationDuration=(0.7+(i%5)*0.12).toFixed(2)+'s'; wave.appendChild(b); }
 let startMs=Date.now();
@@ -838,13 +839,44 @@ async function transcribe(seg){
       if(lang!=='auto' && LANG_FULL[lang]) opt.language=LANG_FULL[lang];
       if(running) interim.textContent=L('🧠 認識中…','🧠 Recognizing…');
       const out=await asr(s, opt);
-      const t=clean(out.text);
+      let t=clean(out.text);
+      if(t && glossaryOn) t=fixTerms(t);
       if(t) addPair(t);
     }catch(e){ console.warn('ASR error', e); }
   }
   sttBusy=false;
   if(running) interim.textContent=L('🔊 取り込み中…','🔊 Capturing…');
 }
+// ===== 用語集 (Cardano/暗号資産 スターター) =====
+// 誤爆しにくい語に限定。trigger=その語が無いと意味が壊れる固有名詞中心。一般英単語(eternal/pluto/the rep等)は意図的に除外。
+const GLOSSARY=[
+  {f:['cardano','card a no','cardarno','card on o'], t:'Cardano'},
+  {f:['lovelace','love lace'], t:'lovelace'},
+  {f:['utxo','e utxo','e-utxo','u t x o','you texo'], t:'UTXO'},
+  {f:['drep','d rep','d-rep','de rep'], t:'DRep'},
+  {f:['plutus','plutos'], t:'Plutus'},
+  {f:['marlowe'], t:'Marlowe'},
+  {f:['ouroboros','oroboros','ouroborus'], t:'Ouroboros'},
+  {f:['mithril'], t:'Mithril'},
+  {f:['hydra'], t:'Hydra'},
+  {f:['aiken'], t:'Aiken'},
+  {f:['catalyst'], t:'Catalyst'},
+  {f:['voltaire'], t:'Voltaire'},
+  {f:['sancho net','sanchonet'], t:'SanchoNet'},
+  {f:['intersect'], t:'Intersect'},
+  {f:['cardano scan','cardanoscan'], t:'CardanoScan'},
+  {f:['gov tool','govtool'], t:'GovTool'},
+  {f:['blockfrost'], t:'Blockfrost'},
+  {f:['koios'], t:'Koios'},
+  {f:['yoroi'], t:'Yoroi'},
+  {f:['eternl'], t:'Eternl'},
+  {f:['emurgo'], t:'Emurgo'},
+  {f:['hoskinson','hoskin son','haskinson'], t:'Hoskinson'},
+];
+const GLOSSARY_RE = GLOSSARY.map(g=>({ re:new RegExp('\\b('+g.f.map(v=>v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\b','gi'), t:g.t }));
+function fixTerms(text){ let out=text; for(const g of GLOSSARY_RE) out=out.replace(g.re, g.t); return out; }
+let glossaryOn = localStorage.getItem('glossary_on')!=='0';   // 既定ON
+
 function clean(s){ const t=(s||'').trim(); const low=t.toLowerCase();
   const junk=['[blank_audio]','(silence)','[silence]','[music]','(music)','you','thank you.','thanks for watching!'];
   if(!t || junk.includes(low)) return ''; if([...t].every(c=>!/[a-z0-9぀-ヿ一-鿿가-힣]/i.test(c))) return ''; return t; }
@@ -926,6 +958,9 @@ cpyAll.onclick=()=>{ const t=[...feed.querySelectorAll('.dst')].map(l=>l.textCon
 chShori.onclick=()=>{ if(mode!=='prose'){ mode='prose'; sumIdx=0; summary=''; } if(!sumOpen){ sumOpen=true; applyOpen(); } doRefine(true); };
 chYoyaku.onclick=()=>{ if(mode!=='digest'){ mode='digest'; sumIdx=0; summary=''; } if(!sumOpen){ sumOpen=true; applyOpen(); } doRefine(true); };
 chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) maybeAuto(); };
+// 用語集トグル (Cardano/暗号資産の専門用語を補正)。既定ON
+chGloss.classList.toggle('on', glossaryOn);
+chGloss.onclick=()=>{ glossaryOn=!glossaryOn; chGloss.classList.toggle('on',glossaryOn); localStorage.setItem('glossary_on', glossaryOn?'1':'0'); };
 </script>
 
 <!-- 使い方プレビュー: 本体ロジックとは独立した自己完結スクリプト (#demoPrev サブツリーのみ操作) -->
