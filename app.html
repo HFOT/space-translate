@@ -106,11 +106,32 @@
   #app:not(.live) #startPrompt{display:flex}
   #app:not(.live) #feedMeta,#app:not(.live) .bigwave,#app:not(.live) #feed,#app:not(.live) .feed-foot,#app:not(.live) #refine{display:none}
   #app:not(.live) #startBtn{display:none}
+  /* ===== ライトモード ===== */
+  [data-theme="light"]{
+    --bg:#eef2f3; --bg2:#ffffff; --panel:#ffffff; --border:#d6dcde;
+    --tx:#17191c; --tx2:#48535a; --tx3:#7c878d; --ui-rgb:13,148,136;
+  }
+  [data-theme="light"] #left{background:#f6f9f9}
+  [data-theme="light"] .left-bg .glow{opacity:.32}
+  [data-theme="light"] .left-bg .grid{background-image:linear-gradient(rgba(0,0,0,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.045) 1px,transparent 1px)}
+  [data-theme="light"] .lp-h1{background:none;-webkit-text-fill-color:var(--tx);color:var(--tx)}
+  [data-theme="light"] .lp-step{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.08)}
+  [data-theme="light"] .chip{background:rgba(0,0,0,.03)}
+  [data-theme="light"] #themeToggle,[data-theme="light"] #langToggle{background:rgba(0,0,0,.04)}
+  [data-theme="light"] #feedMeta,[data-theme="light"] #interim,[data-theme="light"] #refHead,[data-theme="light"] #keyBar{background:rgba(0,0,0,.03)}
+  [data-theme="light"] #refine,[data-theme="light"] .feed-foot{background:rgba(0,0,0,.025)}
+  [data-theme="light"] .line{border-bottom-color:rgba(0,0,0,.07)}
+  [data-theme="light"] .line .dst{border-left-color:var(--border)}
+  [data-theme="light"] .dlBox{background:#ffffff}
+  [data-theme="light"] #dlConsent{background:rgba(18,28,28,.42)}
   /* 表示言語トグル (JP/EN) */
-  #langToggle{position:absolute;top:14px;right:14px;z-index:7;display:inline-flex;gap:2px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:980px;padding:3px}
+  #topCtl{position:absolute;top:14px;right:14px;z-index:7;display:flex;align-items:center;gap:8px}
+  #app.live #topCtl{display:none}
+  #themeToggle{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--tx2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+  #themeToggle:hover{border-color:rgb(var(--ui-rgb))}
+  #langToggle{display:inline-flex;gap:2px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:980px;padding:3px}
   #langToggle button{border:none;background:transparent;color:var(--tx3);font-size:11px;font-weight:700;font-family:var(--mono);padding:5px 12px;border-radius:980px;cursor:pointer;transition:.15s}
   #langToggle button.on{background:rgb(var(--ui-rgb));color:#04221d}
-  #app.live #langToggle{display:none}
   #rHead{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
   .dot{width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0}
   .dot.on{background:rgb(var(--ui-rgb));box-shadow:0 0 8px rgb(var(--ui-rgb))}
@@ -284,9 +305,12 @@
   <!-- 左: 共有タブ -->
   <div id="left">
     <div class="left-bg" aria-hidden="true"><span class="glow"></span><span class="grid"></span></div>
-    <div id="langToggle" aria-label="表示言語">
-      <button data-lang="ja" class="on">日本語</button>
-      <button data-lang="en">EN</button>
+    <div id="topCtl">
+      <button id="themeToggle" title="ライト / ダーク切替">☀</button>
+      <div id="langToggle" aria-label="表示言語">
+        <button data-lang="ja" class="on">日本語</button>
+        <button data-lang="en">EN</button>
+      </div>
     </div>
     <div id="vidWrap">
       <div id="vidHint">
@@ -586,6 +610,12 @@ function setLang(lang){
 }
 langToggle.querySelectorAll('button').forEach(b=> b.onclick=()=>setLang(b.dataset.lang));
 setLang(localStorage.getItem('lp_lang') || 'ja');
+
+// ライト / ダーク モード
+const themeToggle=document.getElementById('themeToggle');
+function setTheme(t){ document.documentElement.setAttribute('data-theme', t); themeToggle.textContent = (t==='light')?'🌙':'☀'; localStorage.setItem('lp_theme', t); }
+themeToggle.onclick=()=> setTheme(document.documentElement.getAttribute('data-theme')==='light' ? 'dark' : 'light');
+setTheme(localStorage.getItem('lp_theme') || 'dark');
 
 function stopShare(){
   running=false; appEl.classList.remove('live'); liveDot.classList.remove('on'); wave.style.display='none';
