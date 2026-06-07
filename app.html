@@ -447,6 +447,9 @@ const WHISPER_MODEL = 'Xenova/whisper-base';  // 速度重視なら whisper-tiny
 const AUTO_THRESHOLD = 16;
 const LANG_FULL = { en:'english', ja:'japanese', ko:'korean', zh:'chinese', es:'spanish', fr:'french', de:'german' };
 const LANG_NAME = { ja:'日本語', en:'English', ko:'한국어', zh:'中文', es:'Español', fr:'Français', de:'Deutsch' };
+// 表示言語 (JP/EN)。L()/syncKeyUI() がモジュール初期化中に参照するため、ここで先に宣言する
+let uiLang='ja';
+function L(ja,en){ return uiLang==='en'?en:ja; }
 
 // ===== DOM =====
 const $ = s => document.querySelector(s);
@@ -612,7 +615,6 @@ splitH.onpointerup=e=>{ splitDrag=false; splitH.classList.remove('drag'); appEl.
 
 // ランディングの表示言語 (JP/EN)
 const langToggle=document.getElementById('langToggle');
-let uiLang='ja';
 function setLang(lang){
   uiLang=lang;
   document.querySelectorAll('[data-ja]').forEach(el=>{
@@ -637,7 +639,6 @@ function setLang(lang){
   if(typeof syncKeyUI==='function') syncKeyUI();
   localStorage.setItem('lp_lang', lang);
 }
-function L(ja,en){ return uiLang==='en'?en:ja; }
 langToggle.querySelectorAll('button').forEach(b=> b.onclick=()=>setLang(b.dataset.lang));
 setLang(localStorage.getItem('lp_lang') || 'ja');
 
