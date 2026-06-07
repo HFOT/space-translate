@@ -23,6 +23,7 @@
     /* シグナル(ティール)パレット — landing.html と統一 */
     --bg:#04080a; --bg2:#0a1414; --panel:#0a1414; --border:rgba(255,255,255,.08);
     --tx:#eef6f5; --tx2:#8fa3a3; --tx3:#5f7373; --ui-rgb:47,224,196;
+    --grad:linear-gradient(120deg,#2fe0c4 0%,#38d0ff 100%);
     --mono:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Helvetica,"Hiragino Kaku Gothic ProN",Arial,sans-serif;
   }
   *{box-sizing:border-box}
@@ -63,14 +64,15 @@
   .lp-flow{position:relative;display:flex;justify-content:space-between;gap:6px;margin:8px 0 30px}
   .lp-flow::before{content:"";position:absolute;top:20px;left:16%;right:16%;height:2px;background:linear-gradient(90deg,rgb(var(--ui-rgb)),#38d0ff);opacity:.5;z-index:0}
   .lp-fstep{position:relative;z-index:1;flex:1;text-align:center;padding:0 4px}
-  .lp-fnum{width:40px;height:40px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;background:rgb(var(--ui-rgb));color:#04080a;font-weight:700;font-size:16px;box-shadow:0 0 0 6px rgba(47,224,196,.12)}
+  .lp-fnum{width:40px;height:40px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;background:var(--grad);color:#04221d;font-weight:700;font-size:16px;box-shadow:0 4px 14px rgba(47,224,196,.3)}
   .lp-ft{color:var(--tx);font-weight:600;font-size:13px}
   .lp-fd{color:var(--tx3);font-size:11.5px;margin-top:5px;line-height:1.5}
   .lp-feats{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
   .lp-chip{font-size:11px;color:var(--tx2);border:1px solid var(--border);border-radius:980px;padding:5px 11px;background:rgba(255,255,255,.03)}
   .lp-trust{display:flex;flex-wrap:wrap;justify-content:center;gap:11px 26px;margin:0 auto 22px}
   .lp-trust .it{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--tx2);white-space:nowrap}
-  .lp-trust .it svg{color:rgb(var(--ui-rgb));flex-shrink:0}
+  .lp-trust .it svg{flex-shrink:0}
+  .lp-trust .it svg path{stroke:url(#tgrad)}
   .lp-note{color:var(--tx3);font-size:11px}
   .lp-tip{max-width:560px;margin:0 auto 18px;font-size:13px;line-height:1.75;color:var(--tx2);background:rgba(47,224,196,.05);border:1px solid rgba(47,224,196,.14);border-radius:14px;padding:13px 18px}
   .lp-tip b{color:var(--tx)}
@@ -80,7 +82,7 @@
   .lp-brand .live{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgb(var(--ui-rgb));display:inline-flex;align-items:center;gap:5px}
   .lp-brand .live::before{content:"";width:6px;height:6px;border-radius:50%;background:rgb(var(--ui-rgb));box-shadow:0 0 8px rgb(var(--ui-rgb));animation:lpulse 1.6s infinite}
   @keyframes lpulse{50%{opacity:.3}}
-  .lp-eyebrow2{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--tx3);text-transform:uppercase;margin-bottom:14px}
+  .lp-eyebrow2{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;font-weight:700}
   /* モデルDL 同意モーダル (ネイティブconfirmの代わり) */
   #dlConsent{display:none;position:fixed;inset:0;z-index:2000;background:rgba(2,6,8,.74);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:22px;font-family:var(--mono)}
   .dlBox{max-width:450px;width:100%;background:#0a1414;border:1px solid var(--border);border-radius:18px;padding:26px 26px 22px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
@@ -92,7 +94,7 @@
   .dlBtns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
   .dlbtn{font-family:var(--mono);font-size:13px;border-radius:9px;padding:10px 16px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--tx2)}
   .dlbtn:hover{border-color:rgb(var(--ui-rgb));color:var(--tx)}
-  .dlbtn.primary{border:none;background:rgb(var(--ui-rgb));color:#04221d;font-weight:700}
+  .dlbtn.primary{border:none;background:var(--grad);color:#04221d;font-weight:700}
 
   /* 右: 翻訳 + 整文 */
   #right{flex:.9;min-width:0;display:flex;flex-direction:column;transition:flex .35s ease}
@@ -110,6 +112,7 @@
   [data-theme="light"]{
     --bg:#eef2f3; --bg2:#ffffff; --panel:#ffffff; --border:#d6dcde;
     --tx:#17191c; --tx2:#48535a; --tx3:#7c878d; --ui-rgb:13,148,136;
+    --grad:linear-gradient(120deg,#0d9488 0%,#0891b2 100%);
   }
   [data-theme="light"] #left{background:#f6f9f9}
   [data-theme="light"] .left-bg .glow{opacity:.32}
@@ -131,14 +134,14 @@
   #themeToggle:hover{border-color:rgb(var(--ui-rgb))}
   #langToggle{display:inline-flex;gap:2px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:980px;padding:3px}
   #langToggle button{border:none;background:transparent;color:var(--tx3);font-size:11px;font-weight:700;font-family:var(--mono);padding:5px 12px;border-radius:980px;cursor:pointer;transition:.15s}
-  #langToggle button.on{background:rgb(var(--ui-rgb));color:#04221d}
+  #langToggle button.on{background:var(--grad);color:#04221d}
   #rHead{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
   .dot{width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0}
   .dot.on{background:rgb(var(--ui-rgb));box-shadow:0 0 8px rgb(var(--ui-rgb))}
   #rHead .sp{flex:1}
   select,.btn{font-size:13px;background:var(--bg);color:var(--tx);border:1px solid var(--border);border-radius:5px;padding:6px 11px;font-family:var(--mono);cursor:pointer}
   .btn:hover{border-color:rgb(var(--ui-rgb))}
-  .btn.primary{border:none;background:rgb(var(--ui-rgb));color:#fff;font-weight:700}
+  .btn.primary{border:none;background:var(--grad);color:#04221d;font-weight:700}
   .btn.on{border-color:rgb(var(--ui-rgb));background:rgba(var(--ui-rgb),.3);color:#fff;font-weight:700}
   .lbl{font-size:11px;color:var(--tx3);white-space:nowrap}
   .cpy{border:none;background:transparent;color:var(--tx3);cursor:pointer;font-size:12px;opacity:.6;padding:0 2px}
@@ -256,6 +259,9 @@
 <!-- ロゴのグラデーション定義 (全ロゴで共有) -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <linearGradient id="sgrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#2fe0c4"/><stop offset="1" stop-color="#38d0ff"/>
+  </linearGradient>
+  <linearGradient id="tgrad" x1="0" y1="0" x2="1" y2="1">
     <stop stop-color="#2fe0c4"/><stop offset="1" stop-color="#38d0ff"/>
   </linearGradient>
 </defs></svg>
@@ -584,7 +590,7 @@ async function onStart(){
   proc.onaudioprocess = onAudio;
 
   running=true; appEl.classList.add('live'); liveDot.classList.add('on'); startMs=Date.now(); wave.style.display='flex';
-  startBtn.textContent='⏹ STOP'; startBtn.style.background='#e74c3c';
+  startBtn.textContent='⏹ STOP'; startBtn.style.background='#e74c3c'; startBtn.style.color='#fff';
   interim.textContent='🔊 取り込み中… (音が鳴れば字幕が出ます)';
 }
 startBtn.onclick = onStart;
@@ -619,7 +625,7 @@ setTheme(localStorage.getItem('lp_theme') || 'dark');
 
 function stopShare(){
   running=false; appEl.classList.remove('live'); liveDot.classList.remove('on'); wave.style.display='none';
-  startBtn.textContent='▶ START'; startBtn.style.background='';
+  startBtn.textContent='▶ START'; startBtn.style.background=''; startBtn.style.color='';
   // CTA を元に戻す (モデルが準備済みなら次回は1クリックで共有)
   if(startBig) startBig.textContent = asr ? '▶ 開始' : '▶ 始める';
   var _h=document.querySelector('#startPrompt .sp-hint');
