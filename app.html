@@ -30,7 +30,13 @@
   #app{display:flex;height:100vh;width:100vw}
 
   /* 左: 共有タブのプレビュー */
-  #left{position:relative;overflow:hidden;flex:1.35;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--border);background:#04080a;transition:flex .35s ease}
+  #left{position:relative;overflow:hidden;flex:1.35;min-width:0;display:flex;flex-direction:column;background:#04080a;transition:flex .35s ease}
+  /* 左右ドラッグリサイズ用スプリッター */
+  #splitH{flex:0 0 6px;cursor:col-resize;position:relative;z-index:6;background:transparent}
+  #splitH::after{content:"";position:absolute;left:2px;top:0;bottom:0;width:1px;background:var(--border);transition:background .15s,box-shadow .15s,width .15s}
+  #splitH:hover::after,#splitH.drag::after{background:rgb(var(--ui-rgb));box-shadow:0 0 8px rgba(47,224,196,.5);width:2px}
+  #app.resizing{user-select:none}
+  #app.resizing #left,#app.resizing #right{transition:none}
   .left-bg{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
   .left-bg .glow{position:absolute;width:72%;height:60%;left:-14%;bottom:-18%;border-radius:50%;filter:blur(82px);background:radial-gradient(circle,rgba(47,224,196,.20),transparent 62%)}
   .left-bg .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:60px 60px;-webkit-mask-image:radial-gradient(120% 90% at 50% 0%,#000 30%,transparent 80%);mask-image:radial-gradient(120% 90% at 50% 0%,#000 30%,transparent 80%)}
@@ -294,6 +300,8 @@
     </div>
   </div>
 
+  <div id="splitH" title="ドラッグで左右の幅を変更" aria-hidden="true"></div>
+
   <!-- 右: 翻訳 + 整文 -->
   <div id="right">
     <div id="rHead">
@@ -537,6 +545,13 @@ async function onStart(){
 }
 startBtn.onclick = onStart;
 const startBig = document.getElementById('startBig'); if(startBig) startBig.onclick = onStart;
+
+// 左右ドラッグリサイズ
+const splitH=document.getElementById('splitH'), leftEl=document.getElementById('left'), rightEl=document.getElementById('right');
+let splitDrag=false;
+splitH.onpointerdown=e=>{ splitDrag=true; splitH.classList.add('drag'); appEl.classList.add('resizing'); try{splitH.setPointerCapture(e.pointerId);}catch(_){} e.preventDefault(); };
+splitH.onpointermove=e=>{ if(!splitDrag) return; const r=appEl.getBoundingClientRect(); let ratio=(e.clientX-r.left)/r.width; ratio=Math.max(.22,Math.min(.78,ratio)); leftEl.style.flex=ratio.toFixed(3); rightEl.style.flex=(1-ratio).toFixed(3); };
+splitH.onpointerup=e=>{ splitDrag=false; splitH.classList.remove('drag'); appEl.classList.remove('resizing'); try{splitH.releasePointerCapture(e.pointerId);}catch(_){} };
 
 function stopShare(){
   running=false; appEl.classList.remove('live'); liveDot.classList.remove('on'); wave.style.display='none';
