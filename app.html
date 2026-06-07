@@ -955,7 +955,7 @@ chAuto.onclick=()=>{ auto=!auto; chAuto.classList.toggle('on',auto); if(auto) ma
     moveCursor(row); await sleep(680); row.classList.add('sel'); await sleep(480);
     moveCursor(share); await sleep(680); share.classList.add('press'); await sleep(170); share.classList.remove('press'); await sleep(240);
     // ③ 字幕フィード
-    dialog.classList.remove('show'); cursor.classList.remove('show'); setLabel('s3'); live.classList.add('show');
+    dialog.classList.remove('show'); cursor.classList.remove('show'); label.classList.remove('show'); live.classList.add('show');
     for(const it of LINES){
       const ln=document.createElement('div'); ln.className='dp-ln';
       const s=document.createElement('div'); s.className='s'; s.textContent=it.s;
