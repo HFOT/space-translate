@@ -105,6 +105,9 @@
   #startPrompt .sp-logo{width:60px;height:60px;filter:drop-shadow(0 6px 22px rgba(99,102,241,.35))}
   #startPrompt #startBig{font-size:16px;font-weight:700;padding:14px 38px;border-radius:980px;box-shadow:0 8px 26px rgba(99,102,241,.32)}
   #startPrompt .sp-hint{color:var(--tx3);font-size:12px;line-height:1.7}
+  #silentToggle{display:inline-flex;align-items:center;gap:9px;margin-top:4px;font-size:12px;color:var(--tx2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:980px;padding:8px 16px;line-height:1.3}
+  #silentToggle:hover{border-color:rgb(var(--ui-rgb))}
+  #silentToggle input{width:15px;height:15px;accent-color:rgb(var(--ui-rgb));cursor:pointer;flex-shrink:0;margin:0}
   #app:not(.live) #startPrompt{display:flex}
   #app:not(.live) #feedMeta,#app:not(.live) .bigwave,#app:not(.live) #feed,#app:not(.live) .feed-foot,#app:not(.live) #refine{display:none}
   #app:not(.live) #startBtn{display:none}
@@ -385,6 +388,9 @@
         <svg class="sp-logo" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="url(#sgrad)"/><g fill="#fff"><rect x="9.6" y="17" width="2.8" height="6" rx="1.4"/><rect x="15" y="12" width="2.8" height="16" rx="1.4"/><rect x="20.4" y="15" width="2.8" height="10" rx="1.4"/><rect x="25.8" y="10.5" width="2.8" height="19" rx="1.4"/></g></svg>
         <button class="btn primary" id="startBig">▶ 始める</button>
         <div class="sp-hint">押すとタブ共有で字幕がスタート<br><span style="opacity:.65">言語は右上で設定 ・ 初回のみモデルを安全にDL</span></div>
+        <label id="silentToggle" title="Space に登壇しながらスマホで聴き、PCは音を切って字幕だけ見られます。PCの音量を切るか、共有タブをミュートしてください（タブ音声は内部で直接取得するので字幕は動き続けます）。">
+          <input type="checkbox" id="silentChk"> 🔇 音なし翻訳モード <span style="opacity:.6">（登壇者向け・PCミュートでも字幕）</span>
+        </label>
       </div>
     </div>
     <div id="interim">準備中… モデルは初回のみ自動ダウンロード</div>
@@ -591,7 +597,9 @@ async function onStart(){
 
   running=true; appEl.classList.add('live'); liveDot.classList.add('on'); startMs=Date.now(); wave.style.display='flex';
   startBtn.textContent='⏹ STOP'; startBtn.style.background='#e74c3c'; startBtn.style.color='#fff';
-  interim.textContent='🔊 取り込み中… (音が鳴れば字幕が出ます)';
+  interim.textContent = (silentChk && silentChk.checked)
+    ? '🔇 音なしモード — PCをミュートしてOK。字幕は内部で動き続けます'
+    : '🔊 取り込み中… (音が鳴れば字幕が出ます)';
 }
 startBtn.onclick = onStart;
 const startBig = document.getElementById('startBig'); if(startBig) startBig.onclick = onStart;
@@ -622,6 +630,13 @@ const themeToggle=document.getElementById('themeToggle');
 function setTheme(t){ document.documentElement.setAttribute('data-theme', t); themeToggle.textContent = (t==='light')?'🌙':'☀'; localStorage.setItem('lp_theme', t); }
 themeToggle.onclick=()=> setTheme(document.documentElement.getAttribute('data-theme')==='light' ? 'dark' : 'light');
 setTheme(localStorage.getItem('lp_theme') || 'dark');
+
+// 音なし翻訳モード (登壇者向け: PCミュートでも字幕)
+const silentChk=document.getElementById('silentChk');
+if(silentChk){
+  silentChk.checked = localStorage.getItem('silent_mode')==='1';
+  silentChk.onchange=()=> localStorage.setItem('silent_mode', silentChk.checked?'1':'0');
+}
 
 function stopShare(){
   running=false; appEl.classList.remove('live'); liveDot.classList.remove('on'); wave.style.display='none';
